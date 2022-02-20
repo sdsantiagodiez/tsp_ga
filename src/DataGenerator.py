@@ -6,6 +6,7 @@ from geopy.distance import geodesic
 class DataGenerator(object):
     MIN_NUM_CITIES: int = 5
     CITIES_DATA_PATH: str = "../data/starbucks_us_locations.csv"
+    DISTANCE_ROUNDING: int = 4
 
     def __init__(self, num_cities: int = 10):
         self.all_cities = self.__get_all_cities()
@@ -72,7 +73,7 @@ class DataGenerator(object):
                         geodesic(
                             origin["coordinates"], destination["coordinates"]
                         ).kilometers,
-                        4,
+                        self.DISTANCE_ROUNDING,
                     )
 
         return cities_distance
