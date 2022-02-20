@@ -1,4 +1,5 @@
 import pandas as pd
+from geopy.distance import geodesic
 
 
 class DataGenerator(object):
@@ -6,10 +7,10 @@ class DataGenerator(object):
     CITIES_DATA_PATH: str = "../data/starbucks_us_locations.csv"
 
     def __init__(self, num_cities: int = 10):
-        self.num_cities = num_cities
         self.all_cities = self.__get_all_cities()
+        self.num_cities = num_cities
         self.selected_cities = self.__get_selected_cities()
-        self.distances = self.__generate_random_distances()
+        self.distances = self.__generate_distances()
 
     @property
     def num_cities(self):
@@ -33,21 +34,38 @@ class DataGenerator(object):
         cities["city"] = cities["city"].str[:-7]
         cities["city"] = cities["city"].str.replace(r"\[.*", "", regex=True)
         cities["state_city"] = cities["state"] + "-" + cities["city"]
+        cities["coordinates"] = list(
+            zip(cities["latitude"], cities["longitude"])
+        )
 
         return cities
 
+    def __get_distance(city_1, city_2):
+        return geodesic(city_1["coordinates"], city_2["coordinates"]).kilometers
+
     def __get_selected_cities(self):
+        city_columns = self.all_cities.columns.tolist()
+        selected_cities = pd.DataFrame(columns=city_columns)
+        for city in range(self.num_cities):
+            random_city = self.all_cities.sample()
+            while (
+                random_city["state_city"]
+                .isin(selected_cities["state_city"])
+                .any()
+            ):
+                random_city = self.all_cities.sample()
+            selected_cities = pd.concat([selected_cities, random_city])
 
-        return None
+        return selected_cities.reset_index(drop=True)
 
-    def __generate_random_distances(self):
+    def __generate_distances(self):
 
         for city in range(self.num_cities):
             pass
 
     def get_distances(self, new_generation: bool = False):
         if new_generation:
-            self.distances = self.__generate_random_distances()
+            self.distances = self.__generate_distances()
 
         return self.distances
 
