@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from geopy.distance import geodesic
 
 
@@ -59,9 +60,22 @@ class DataGenerator(object):
         return selected_cities.reset_index(drop=True)
 
     def __generate_distances(self):
+        cities_distance = np.full((self.num_cities, self.num_cities), np.inf)
 
-        for city in range(self.num_cities):
-            pass
+        for origin_index, origin in self.selected_cities.iterrows():
+            for (
+                destination_index,
+                destination,
+            ) in self.selected_cities.iterrows():
+                if origin_index != destination_index:
+                    cities_distance[origin_index, destination_index] = round(
+                        geodesic(
+                            origin["coordinates"], destination["coordinates"]
+                        ).kilometers,
+                        4,
+                    )
+
+        return cities_distance
 
     def get_distances(self, new_generation: bool = False):
         if new_generation:
