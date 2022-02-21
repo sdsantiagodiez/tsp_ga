@@ -64,7 +64,7 @@ class DataGenerator(object):
 
         return selected_cities.reset_index(drop=True)
 
-    def __generate_distances(self):
+    def __generate_distances(self, distance_type: str = "geodesic"):
         cities_distance = np.full((self.num_cities, self.num_cities), np.inf)
 
         for origin_index, origin in self.selected_cities.iterrows():
@@ -73,14 +73,29 @@ class DataGenerator(object):
                 destination,
             ) in self.selected_cities.iterrows():
                 if origin_index != destination_index:
-                    cities_distance[origin_index, destination_index] = round(
-                        geodesic(
-                            origin["coordinates"], destination["coordinates"]
-                        ).kilometers,
-                        self.DISTANCE_ROUNDING,
+                    cities_distance[
+                        origin_index, destination_index
+                    ] = self.__get_distance(
+                        origin["coordinates"],
+                        destination["coordinates"],
+                        distance_type=distance_type,
                     )
 
         return cities_distance
+
+    def __get_distance(
+        self,
+        origin_coordinates,
+        destination_coordinates,
+        distance_type: str = "geodesic",
+    ):
+        distance = np.inf
+        if distance_type == "geodesic":
+            distance = geodesic(
+                origin_coordinates, destination_coordinates
+            ).kilometers
+
+        return round(distance, self.DISTANCE_ROUNDING)
 
     def generate_new_cities_selection(
         self, num_cities: int = None, seed: int = 42
