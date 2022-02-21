@@ -26,9 +26,7 @@ class DataGenerator(object):
 
     def __get_all_cities(self):
         columns = ["longitude", "latitude", "id", "address"]
-        cities = pd.read_csv(
-            "../data/starbucks_us_locations.csv", names=columns, header=None
-        )
+        cities = pd.read_csv(self.CITIES_DATA_PATH, names=columns, header=None)
         cities.dropna(inplace=True)
         cities[["state", "city"]] = cities.id.str.split("-", expand=True)[
             [1, 2]
