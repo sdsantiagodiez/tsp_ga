@@ -1,4 +1,3 @@
-from typing import overload
 import pandas as pd
 import numpy as np
 from geopy.distance import geodesic
@@ -9,9 +8,9 @@ class DataGenerator(object):
     CITIES_DATA_PATH: str = "../data/starbucks_us_locations.csv"
     DISTANCE_ROUNDING: int = 4
 
-    def __init__(self, num_cities: int = 10):
+    def __init__(self, num_cities: int = 10, seed: int = 42):
         self.all_cities = self.__get_all_cities()
-        self.generate_new_cities_selection(num_cities)
+        self.generate_new_cities_selection(num_cities, seed)
 
     @property
     def num_cities(self):
@@ -83,17 +82,13 @@ class DataGenerator(object):
 
         return cities_distance
 
-    @overload
-    def generate_new_cities_selection(self, seed: int = 42) -> None:
+    def generate_new_cities_selection(
+        self, num_cities: int = None, seed: int = 42
+    ) -> None:
+        if num_cities is not None:
+            self.__set_num_cities(num_cities)
         self._selected_cities = self.__get_selected_cities(seed)
         self._distances = self.__generate_distances()
-
-    @overload
-    def generate_new_cities_selection(
-        self, num_cities: int, seed: int = 42
-    ) -> None:
-        self.__set_num_cities(num_cities)
-        self.generate_new_cities_selection(seed)
 
 
 def main():
