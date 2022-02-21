@@ -1,3 +1,4 @@
+from typing import overload
 import pandas as pd
 import numpy as np
 from geopy.distance import geodesic
@@ -10,19 +11,24 @@ class DataGenerator(object):
 
     def __init__(self, num_cities: int = 10):
         self.all_cities = self.__get_all_cities()
-        self.num_cities = num_cities
-        self.selected_cities = self.__get_selected_cities()
-        self.distances = self.__generate_distances()
+        self.generate_new_cities_selection(num_cities)
 
     @property
     def num_cities(self):
         return self._num_cities
 
-    @num_cities.setter
-    def num_cities(self, value: int):
+    def __set_num_cities(self, value: int):
         if value < self.MIN_NUM_CITIES:
             raise ValueError("Number of cities can't be less than 5")
         self._num_cities = value
+
+    @property
+    def selected_cities(self):
+        return self._selected_cities
+
+    @property
+    def distances(self):
+        return self._distances
 
     def __get_all_cities(self):
         columns = ["longitude", "latitude", "id", "address"]
@@ -40,20 +46,19 @@ class DataGenerator(object):
 
         return cities
 
-    def __get_distance(city_1, city_2):
-        return geodesic(city_1["coordinates"], city_2["coordinates"]).kilometers
-
-    def __get_selected_cities(self):
+    def __get_selected_cities(self, seed: int = 42):
         city_columns = self.all_cities.columns.tolist()
         selected_cities = pd.DataFrame(columns=city_columns)
+        random_state = seed
         for city in range(self.num_cities):
-            random_city = self.all_cities.sample()
+            random_city = self.all_cities.sample(random_state=random_state)
             while (
                 random_city["state_city"]
                 .isin(selected_cities["state_city"])
                 .any()
             ):
-                random_city = self.all_cities.sample()
+                random_state += 1
+                random_city = self.all_cities.sample(random_state=random_state)
             selected_cities = pd.concat([selected_cities, random_city])
 
         return selected_cities.reset_index(drop=True)
@@ -76,11 +81,17 @@ class DataGenerator(object):
 
         return cities_distance
 
-    def get_distances(self, new_generation: bool = False):
-        if new_generation:
-            self.distances = self.__generate_distances()
+    @overload
+    def generate_new_cities_selection(self, seed: int = 42) -> None:
+        self._selected_cities = self.__get_selected_cities(seed)
+        self._distances = self.__generate_distances()
 
-        return self.distances
+    @overload
+    def generate_new_cities_selection(
+        self, num_cities: int, seed: int = 42
+    ) -> None:
+        self.__set_num_cities(num_cities)
+        self.generate_new_cities_selection(seed)
 
 
 def main():
