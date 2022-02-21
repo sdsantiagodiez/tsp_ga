@@ -19,7 +19,9 @@ class DataGenerator(object):
 
     def __set_num_cities(self, value: int):
         if value < self.MIN_NUM_CITIES:
-            raise ValueError("Number of cities can't be less than 5")
+            raise ValueError(
+                f"Number of cities can't be less than {self.MIN_NUM_CITIES}"
+            )
         self._num_cities = value
 
     @property
