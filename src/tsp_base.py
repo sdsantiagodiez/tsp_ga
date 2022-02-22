@@ -1,7 +1,5 @@
 import sys
 import numpy as np
-from random import sample
-
 from DataGenerator import DataGenerator
 
 sys.path.append(".")  # until structured as package
@@ -88,7 +86,9 @@ class TSP(object):
             (self.population_size, self.gene_size), -1, dtype=np.int8
         )
         for i in range(self.population_size):
-            population[i] = sample(range(self.gene_size), self.gene_size)
+            population[i] = np.random.choice(
+                self.gene_size, self.gene_size, replace=False
+            )
 
         return population
 
@@ -136,8 +136,14 @@ class TSP(object):
     def __select_parents(self):
         pass
 
-    def __crossover(self):
-        pass
+    def __crossover(self, parent_1, parent_2):
+        # starting_cty = np.random.choice(self.gene_size, 1)[0]
+        child = np.full(self.gene_size, -1, dtype=np.int8)
+        # parent_1_starting_idx = np.where(parent_1 == starting_cty)[0][0]
+        # parent_2_starting_idx = np.where(parent_2 == starting_cty)[0][0]
+
+        # wip
+        return child
 
     def __calculate_fitness(self, gene, distances: np.ndarray):
         one_hot_distances = np.zeros(
@@ -157,7 +163,7 @@ class TSP(object):
             genes[i] = self.__mutate_gene(gene)
 
     def __mutate_gene(self, gene):
-        chromosomes = sample(range(self.gene_size), 2)
+        chromosomes = np.random.choice(self.gene_size, 2, replace=False)
         gene[[chromosomes[0], chromosomes[1]]] = gene[
             [chromosomes[1], chromosomes[0]]
         ]
