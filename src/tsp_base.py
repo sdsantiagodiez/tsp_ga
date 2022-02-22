@@ -35,7 +35,7 @@ class TSP(object):
     @generation_number.setter
     def generation_number(self, value: int):
         if value < self.MIN_GENERATION_NUMBER:
-            value_error_message = "Population number can't be less than"
+            value_error_message = "Generation number can't be less than"
             raise ValueError(
                 f"{value_error_message} {self.MIN_GENERATION_NUMBER}"
             )
@@ -103,7 +103,7 @@ class TSP(object):
             one_hot_distances[gene[i], gene[i + 1]] = 1
         one_hot_distances[gene[self.gene_size - 1], gene[0]] = 1
 
-        return 1 / np.nansum(one_hot_distances * distances)
+        return np.nansum(one_hot_distances * distances)
 
     def __mutate(self, gene):
         pass
@@ -118,7 +118,7 @@ class TSP(object):
 
 def main():
     tsp_base = TSP(
-        generation_number=1, population_number=1, num_cities=10, seed=42
+        generation_number=5, population_number=5, num_cities=10, seed=42
     )
     tsp_base.run()
 
