@@ -65,7 +65,9 @@ class DataGenerator(object):
         return selected_cities.reset_index(drop=True)
 
     def __generate_distances(self, distance_type: str = "geodesic"):
-        cities_distance = np.full((self.num_cities, self.num_cities), np.inf)
+        cities_distance = np.full(
+            (self.num_cities, self.num_cities), np.inf, dtype=np.float16
+        )
 
         for origin_index, origin in self.selected_cities.iterrows():
             for (
