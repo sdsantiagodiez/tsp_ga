@@ -158,10 +158,9 @@ class TSP(object):
 
     def __mutate_gene(self, gene):
         chromosomes = sample(range(self.gene_size), 2)
-        gene[chromosomes[0]], gene[chromosomes[1]] = (
-            gene[chromosomes[1]],
-            gene[chromosomes[0]],
-        )
+        gene[[chromosomes[0], chromosomes[1]]] = gene[
+            [chromosomes[1], chromosomes[0]]
+        ]
 
     def run(self):
         distance = self.__calculate_fitness(
