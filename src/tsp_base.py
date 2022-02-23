@@ -137,13 +137,46 @@ class TSP(object):
         pass
 
     def __crossover(self, parent_1, parent_2):
-        # starting_cty = np.random.choice(self.gene_size, 1)[0]
+        starting_cty = np.random.choice(self.gene_size, 1)[0]
         child = np.full(self.gene_size, -1, dtype=np.int8)
-        # parent_1_starting_idx = np.where(parent_1 == starting_cty)[0][0]
-        # parent_2_starting_idx = np.where(parent_2 == starting_cty)[0][0]
+        parent_1_starting_idx = np.where(parent_1 == starting_cty)[0][0]
+        parent_2_starting_idx = np.where(parent_2 == starting_cty)[0][0]
+        parent_1_reordered = np.concatenate(
+            (
+                parent_1[parent_1_starting_idx:],
+                parent_1[:parent_1_starting_idx],
+            ),
+            axis=0,
+        )
+        parent_2_reordered = np.concatenate(
+            (
+                parent_2[parent_2_starting_idx:],
+                parent_2[:parent_2_starting_idx],
+            ),
+            axis=0,
+        )
 
-        # wip
+        for i in np.arange(self.gene_size).tolist():
+            if parent_1_reordered[i] == parent_2_reordered[i]:
+                child[i] = parent_1_reordered[i]
+            else:
+                child[i] = self.__get_shortest_path(
+                    child[i - 1], parent_1_reordered[i], parent_2_reordered[i]
+                )
         return child
+
+    def __get_shortest_path(self, origin, destination_1, destination_2):
+        """
+        By default the shortests path will be used as selection for
+        which destination to choose. This could be change to other
+        strategies
+        """
+        return (
+            destination_1
+            if self.city_data.distances[origin, destination_1]
+            < self.city_data.distances[origin, destination_2]
+            else destination_2
+        )
 
     def __calculate_fitness(self, gene, distances: np.ndarray):
         one_hot_distances = np.zeros(
