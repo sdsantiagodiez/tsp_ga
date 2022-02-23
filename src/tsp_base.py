@@ -9,6 +9,8 @@ class TSP(object):
     __MIN_POPULATION_SIZE: int = 5
     __MIN_POPULATION_NUMBER: int = 1
     __MIN_GENERATION_NUMBER: int = 5
+    __MIN_SELECTION_THRESHOLD: int = 2
+    __MAX_SELECTION_THRESHOLD: int = 2
 
     def __init__(
         self,
@@ -18,6 +20,7 @@ class TSP(object):
         num_cities: int = 10,
         max_mutation_rate: float = 0.35,
         uniform_population_mutation_rate: bool = False,
+        selection_threshold: int = 0,
         seed: int = 42,
     ):
         self.generation_number = generation_number
@@ -27,7 +30,12 @@ class TSP(object):
         self.gene_size = self.city_data.num_cities
         self.max_mutation_rate = max_mutation_rate
         self.uniform_population_mutation_rate = uniform_population_mutation_rate
-
+        self.__MAX_SELECTION_THRESHOLD = self.population_size / 2
+        self.selection_threshold = (
+            self.__MAX_SELECTION_THRESHOLD
+            if not selection_threshold
+            else selection_threshold
+        )
         self.__initialize_populations()
 
     @property
@@ -81,6 +89,20 @@ class TSP(object):
             )
         self._max_mutation_rate = value
 
+    @property
+    def selection_threshold(self):
+        return self._selection_threshold
+
+    @selection_threshold.setter
+    def selection_threshold(self, value: float):
+        if not (value < self.__MIN_SELECTION_THRESHOLD):
+            value_error_message = "Selection threshold can't be between "
+            raise ValueError(
+                f"{value_error_message} {self.__MIN_SELECTION_THRESHOLD} \n"
+                f"and {self.__MAX_SELECTION_THRESHOLD}"
+            )
+        self._selection_threshold = value
+
     def __get_new_population(self):
         population = np.full(
             (self.population_size, self.gene_size), -1, dtype=np.int8
@@ -133,6 +155,38 @@ class TSP(object):
         self.populations = self.__get_new_populations()
         self.populations_mutation_rate = self.__get_populations_mutation_rates()
 
+    def __calculate_fitness(self, gene: np.ndarray):
+        one_hot_distances = np.zeros(
+            (self.gene_size, self.gene_size), dtype=np.float16
+        )
+        for i in np.arange(self.gene_size - 1).tolist():
+            one_hot_distances[gene[i], gene[i + 1]] = 1
+        one_hot_distances[gene[self.gene_size - 1], gene[0]] = 1
+
+        return np.nansum(one_hot_distances * self.city_data.distances)
+
+    def __calculate_population_fitness(self, population: np.ndarray):
+        population_fitness = np.full(self.population_size, 0, dtype=np.int8)
+        for i in np.arange(self.population_size).tolist:
+            population_fitness[i] = self.__calculate_fitness(population[i])
+
+        return population_fitness
+
+    def __selection(self):
+        for i in np.arange(self.population_number).tolist():
+            self.__selection_on_population(self.populations[i])
+
+    def __selection_on_population(self, population: np.ndarray):
+        """
+        Selection strategy used is based on fitness to allow maximum
+        parallelization. Roulette and tournament could be considered,
+        although it's expected to not perform as fast
+
+        """
+        # population_fitness_sorted = np.argsort(
+        #    self.__calculate_fitness(population)
+        # )
+
     def __select_parents(self):
         pass
 
@@ -179,16 +233,6 @@ class TSP(object):
             < self.city_data.distances[origin, destination_2]
             else destination_2
         )
-
-    def __calculate_fitness(self, gene: np.ndarray, distances: np.ndarray):
-        one_hot_distances = np.zeros(
-            (self.gene_size, self.gene_size), dtype=np.float16
-        )
-        for i in np.arange(self.gene_size - 1).tolist():
-            one_hot_distances[gene[i], gene[i + 1]] = 1
-        one_hot_distances[gene[self.gene_size - 1], gene[0]] = 1
-
-        return np.nansum(one_hot_distances * distances)
 
     def __mutate_genes(self, genes: np.ndarray, mutation_rate: np.float16):
         genes_mutation_rates = np.random.uniform(0, 1, genes.shape)
