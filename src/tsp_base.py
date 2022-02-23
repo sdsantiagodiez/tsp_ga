@@ -85,7 +85,7 @@ class TSP(object):
         population = np.full(
             (self.population_size, self.gene_size), -1, dtype=np.int8
         )
-        for i in range(self.population_size):
+        for i in np.arange(self.population_size).tolist():
             population[i] = np.random.choice(
                 self.gene_size, self.gene_size, replace=False
             )
@@ -98,7 +98,7 @@ class TSP(object):
             -1,
             dtype=np.int8,
         )
-        for i in range(self.population_number):
+        for i in np.arange(self.population_number).tolist():
             populations[i] = self.__get_new_population()
 
         return populations
@@ -136,7 +136,7 @@ class TSP(object):
     def __select_parents(self):
         pass
 
-    def __crossover(self, parent_1, parent_2):
+    def __crossover(self, parent_1: np.ndarray, parent_2: np.ndarray):
         starting_cty = np.random.choice(self.gene_size, 1)[0]
         child = np.full(self.gene_size, -1, dtype=np.int8)
         parent_1_starting_idx = np.where(parent_1 == starting_cty)[0][0]
@@ -165,7 +165,9 @@ class TSP(object):
                 )
         return child
 
-    def __get_shortest_path(self, origin, destination_1, destination_2):
+    def __get_shortest_path(
+        self, origin: np.int8, destination_1: np.int8, destination_2: np.int8
+    ):
         """
         By default the shortests path will be used as selection for
         which destination to choose. This could be change to other
@@ -178,24 +180,24 @@ class TSP(object):
             else destination_2
         )
 
-    def __calculate_fitness(self, gene, distances: np.ndarray):
+    def __calculate_fitness(self, gene: np.ndarray, distances: np.ndarray):
         one_hot_distances = np.zeros(
             (self.gene_size, self.gene_size), dtype=np.float16
         )
-        for i in range(self.gene_size - 1):
+        for i in np.arange(self.gene_size - 1).tolist():
             one_hot_distances[gene[i], gene[i + 1]] = 1
         one_hot_distances[gene[self.gene_size - 1], gene[0]] = 1
 
         return np.nansum(one_hot_distances * distances)
 
-    def __mutate_genes(self, genes, mutation_rate):
+    def __mutate_genes(self, genes: np.ndarray, mutation_rate: np.float16):
         genes_mutation_rates = np.random.uniform(0, 1, genes.shape)
         genes_to_mutate = (genes_mutation_rates < mutation_rate).nonzero()
 
         for i, gene in enumerate(genes_to_mutate):
             genes[i] = self.__mutate_gene(gene)
 
-    def __mutate_gene(self, gene):
+    def __mutate_gene(self, gene: np.ndarray):
         chromosomes = np.random.choice(self.gene_size, 2, replace=False)
         gene[[chromosomes[0], chromosomes[1]]] = gene[
             [chromosomes[1], chromosomes[0]]
