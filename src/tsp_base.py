@@ -183,14 +183,26 @@ class TSP(object):
         although it's expected to not perform as fast
 
         """
-        # population_fitness_sorted = np.argsort(
-        #    self.__calculate_fitness(population)
-        # )
+        population_fitness_sorted = np.argsort(
+            self.__calculate_fitness(population)
+        )
+        fittest_individuals = population[
+            population_fitness_sorted[: self.__MAX_SELECTION_THRESHOLD]
+        ]
+        for not_fittest in population_fitness_sorted[
+            self.__MAX_SELECTION_THRESHOLD :  # noqa: E203
+        ]:
+            population[not_fittest] = fittest_individuals[
+                np.random.choice(self.__MAX_SELECTION_THRESHOLD, 1)[0]
+            ]
 
     def __select_parents(self):
         pass
 
-    def __crossover(self, parent_1: np.ndarray, parent_2: np.ndarray):
+    def __crossover(self, popoulation: np.ndarray):
+        pass
+
+    def __crossover_parents(self, parent_1: np.ndarray, parent_2: np.ndarray):
         starting_cty = np.random.choice(self.gene_size, 1)[0]
         child = np.full(self.gene_size, -1, dtype=np.int8)
         parent_1_starting_idx = np.where(parent_1 == starting_cty)[0][0]
