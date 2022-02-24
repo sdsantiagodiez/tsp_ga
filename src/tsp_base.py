@@ -227,6 +227,9 @@ class TSP(object):
     def __crossover_parents(self, parent_1: np.ndarray, parent_2: np.ndarray):
         starting_cty = np.random.choice(self.gene_size, 1)[0]
         child = np.full(self.gene_size, -1, dtype=np.int8)
+        print(parent_1)
+        print(parent_2)
+        print(starting_cty)
         parent_1_starting_idx = np.where(parent_1 == starting_cty)[0][0]
         parent_2_starting_idx = np.where(parent_2 == starting_cty)[0][0]
         parent_1_reordered = np.concatenate(
@@ -248,9 +251,31 @@ class TSP(object):
             if parent_1_reordered[i] == parent_2_reordered[i]:
                 child[i] = parent_1_reordered[i]
             else:
-                child[i] = self.__get_shortest_path(
-                    child[i - 1], parent_1_reordered[i], parent_2_reordered[i]
-                )
+                if (
+                    parent_1_reordered[i] not in child
+                    and parent_2_reordered[i] not in child
+                ):
+                    child[i] = self.__get_shortest_path(
+                        child[i - 1],
+                        parent_1_reordered[i],
+                        parent_2_reordered[i],
+                    )
+                elif (
+                    parent_1_reordered[i] in child
+                    and parent_2_reordered[i] in child
+                ):
+                    pass
+                    # logic to choose some connection different
+                elif parent_1_reordered[i] in child:
+                    child[i] = parent_2_reordered[i]
+                else:
+                    child[i] = parent_1_reordered[i]
+
+        if np.unique(child).size != self.gene_size:
+            print(parent_1_reordered)
+            print(parent_2_reordered)
+            print(child)
+            raise ValueError("wat")
         return child
 
     def __get_shortest_path(
@@ -279,9 +304,11 @@ class TSP(object):
     def run(self):
         self.__initialize_populations()
 
-        for _ in np.arange(self.generation_number).tolist():
+        for generation in np.arange(self.generation_number).tolist():
             fitness = self.__calculate_fitness()
+            print(f"Generation: {generation}")
             print(fitness)
+            print(fitness.shape)
             for i in np.arange(self.population_number).tolist():
                 population = self.populations[i]
                 population_fitness = fitness[i]
