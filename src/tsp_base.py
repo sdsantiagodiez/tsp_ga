@@ -183,7 +183,18 @@ class TSP(object):
         for i in np.arange(self.gene_size - 1).tolist():
             one_hot_distances[gene[i], gene[i + 1]] = 1
         one_hot_distances[gene[self.gene_size - 1], gene[0]] = 1
+        fitness = np.nansum(one_hot_distances * self.distances)
 
+        # debugging
+        if fitness == np.inf:
+            print(gene)
+            print(one_hot_distances)
+            for i in np.arange(self.gene_size).tolist():
+                for j in np.arange(self.gene_size).tolist():
+                    if i != j and self.distances[i, j] == np.inf:
+                        print(f"{i} and {j}")
+
+            raise ValueError("yep")
         return np.nansum(one_hot_distances * self.distances)
 
     def __calculate_population_fitness(self, population: np.ndarray):
@@ -324,8 +335,9 @@ class TSP(object):
 
         for generation in np.arange(self.generation_number).tolist():
             fitness = self.__calculate_fitness()
-            print(f"Generation: {generation}")
-            print(f"Shortest path: {np.min(fitness)}")
+            print(
+                f"Shortest path on generation {generation}: {np.min(fitness)}"
+            )
             for i in np.arange(self.population_number).tolist():
                 population = self.populations[i]
                 population_fitness = fitness[i]
