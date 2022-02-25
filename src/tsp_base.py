@@ -1,8 +1,4 @@
-import sys
 import numpy as np
-from DataGenerator import DataGenerator
-
-sys.path.append(".")  # until structured as package
 
 
 class TSP(object):
@@ -14,20 +10,18 @@ class TSP(object):
 
     def __init__(
         self,
+        distances: np.ndarray,
         generation_number: int = 10,
         population_number: int = 5,
         population_size: int = 10,
-        num_cities: int = 10,
         max_mutation_rate: float = 0.35,
         uniform_population_mutation_rate: bool = False,
         selection_threshold: int = 0,
-        seed: int = 42,
     ):
+        self.__initialize_distances(distances)
         self.generation_number = generation_number
         self.population_number = population_number
         self.population_size = population_size
-        self.city_data = DataGenerator(num_cities, seed)
-        self.gene_size = self.city_data.num_cities
         self.max_mutation_rate = max_mutation_rate
         self.uniform_population_mutation_rate = uniform_population_mutation_rate
         self.__MAX_SELECTION_THRESHOLD = self.population_size // 2
@@ -106,6 +100,30 @@ class TSP(object):
             )
         self._selection_threshold = value
 
+    @property
+    def distances(self):
+        return self._distances
+
+    @distances.setter
+    def distances(self, value: np.ndarray):
+        value_shape = value.shape
+        if len(value_shape) != 2:
+            raise ValueError(
+                "2d with (N,N) shape matrix expected was not satisfied in \n"
+                " the distance matrix"
+            )
+        elif value_shape[0] != value_shape[1]:
+            raise ValueError(
+                "2d with (N,N) shape matrix expected was not satisfied in \n"
+                " the distance matrix"
+            )
+
+        self._distances = value
+
+    def __initialize_distances(self, distances: np.ndarray):
+        self.distances = distances
+        self.gene_size = self.distances.shape[0]
+
     def __get_new_population(self):
         population = np.full(
             (self.population_size, self.gene_size), -1, dtype=np.int8
@@ -166,7 +184,7 @@ class TSP(object):
             one_hot_distances[gene[i], gene[i + 1]] = 1
         one_hot_distances[gene[self.gene_size - 1], gene[0]] = 1
 
-        return np.nansum(one_hot_distances * self.city_data.distances)
+        return np.nansum(one_hot_distances * self.distances)
 
     def __calculate_population_fitness(self, population: np.ndarray):
         population_fitness = np.full(self.population_size, 0, dtype=np.float32)
@@ -273,10 +291,7 @@ class TSP(object):
     ):
         shortests_path: np.float32 = np.finfo(np.float32).max
         for i in np.arange(destionations.size):
-            if (
-                shortests_path
-                > self.city_data.distances[origin, destionations[i]]
-            ):
+            if shortests_path > self.distances[origin, destionations[i]]:
                 shortests_path = destionations[i]
 
         return shortests_path
@@ -291,8 +306,8 @@ class TSP(object):
         """
         return (
             destination_1
-            if self.city_data.distances[origin, destination_1]
-            < self.city_data.distances[origin, destination_2]
+            if self.distances[origin, destination_1]
+            < self.distances[origin, destination_2]
             else destination_2
         )
 
@@ -319,20 +334,3 @@ class TSP(object):
                     population, population_fitness
                 )
                 self.__crossover(population, mutation_rate, fittest_individuals)
-
-
-def main():
-    tsp_base = TSP(
-        generation_number=10,
-        population_number=10,
-        population_size=100,
-        num_cities=50,
-        max_mutation_rate=0.2,
-        uniform_population_mutation_rate=False,
-        seed=42,
-    )
-    tsp_base.run()
-
-
-if __name__ == "__main__":
-    main()
