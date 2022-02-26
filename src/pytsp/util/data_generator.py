@@ -10,6 +10,7 @@ class DataGenerator(object):
 
     def __init__(self, num_cities: int = 10, seed: int = 42):
         self.all_cities = self.__get_all_cities()
+        self.__set_num_cities(num_cities)
         self.generate_new_cities_selection(num_cities, seed)
 
     @property
@@ -17,6 +18,8 @@ class DataGenerator(object):
         return self._num_cities
 
     def __set_num_cities(self, value: int):
+        if value is None:
+            raise ValueError("Number of cities can't be None")
         if value < self.MIN_NUM_CITIES:
             raise ValueError(
                 f"Number of cities can't be less than {self.MIN_NUM_CITIES}"
