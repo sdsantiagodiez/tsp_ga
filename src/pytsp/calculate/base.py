@@ -1,5 +1,8 @@
 import numpy as np
 
+GENE_DTYPE: type = np.int16
+DISTANCES_DTYPE: type = np.int64
+
 
 class TSP(object):
     __MIN_POPULATION_SIZE: int = 5
@@ -126,7 +129,7 @@ class TSP(object):
 
     def __get_new_population(self):
         population = np.full(
-            (self.population_size, self.gene_size), -1, dtype=np.int8
+            (self.population_size, self.gene_size), -1, dtype=GENE_DTYPE
         )
         for i in np.arange(self.population_size).tolist():
             population[i] = np.random.choice(
@@ -139,7 +142,7 @@ class TSP(object):
         populations = np.full(
             (self.population_number, self.population_size, self.gene_size),
             -1,
-            dtype=np.int8,
+            dtype=GENE_DTYPE,
         )
         for i in np.arange(self.population_number).tolist():
             populations[i] = self.__get_new_population()
@@ -183,22 +186,13 @@ class TSP(object):
         for i in np.arange(self.gene_size - 1).tolist():
             one_hot_distances[gene[i], gene[i + 1]] = 1
         one_hot_distances[gene[self.gene_size - 1], gene[0]] = 1
-        fitness = np.nansum(one_hot_distances * self.distances)
 
-        # debugging
-        if fitness == np.inf:
-            print(gene)
-            print(one_hot_distances)
-            for i in np.arange(self.gene_size).tolist():
-                for j in np.arange(self.gene_size).tolist():
-                    if i != j and self.distances[i, j] == np.inf:
-                        print(f"{i} and {j}")
-
-            raise ValueError("yep")
         return np.nansum(one_hot_distances * self.distances)
 
     def __calculate_population_fitness(self, population: np.ndarray):
-        population_fitness = np.full(self.population_size, 0, dtype=np.float32)
+        population_fitness = np.full(
+            self.population_size, 0, dtype=DISTANCES_DTYPE
+        )
         for i in np.arange(self.population_size).tolist():
             population_fitness[i] = self.__calculate_individual_fitness(
                 population[i]
@@ -208,7 +202,8 @@ class TSP(object):
 
     def __calculate_fitness(self):
         fitness = np.zeros(
-            (self.population_number, self.population_size), dtype=np.float32
+            (self.population_number, self.population_size),
+            dtype=DISTANCES_DTYPE,
         )
         for i in np.arange(self.population_number).tolist():
             fitness[i] = self.__calculate_population_fitness(
@@ -252,7 +247,7 @@ class TSP(object):
 
     def __crossover_parents(self, parent_1: np.ndarray, parent_2: np.ndarray):
         starting_cty = np.random.choice(self.gene_size, 1)[0]
-        child = np.full(self.gene_size, -1, dtype=np.int8)
+        child = np.full(self.gene_size, -1, dtype=GENE_DTYPE)
         parent_1_starting_idx = np.where(parent_1 == starting_cty)[0][0]
         parent_2_starting_idx = np.where(parent_2 == starting_cty)[0][0]
         parent_1_reordered = np.concatenate(
@@ -298,9 +293,9 @@ class TSP(object):
         return child
 
     def __get_shortest_path_from_array(
-        self, origin: np.int8, destionations: np.ndarray
+        self, origin: GENE_DTYPE, destionations: np.ndarray
     ):
-        shortests_path: np.float32 = np.finfo(np.float32).max
+        shortests_path: DISTANCES_DTYPE = np.iinfo(DISTANCES_DTYPE).max
         for i in np.arange(destionations.size):
             if shortests_path > self.distances[origin, destionations[i]]:
                 shortests_path = destionations[i]
@@ -308,7 +303,10 @@ class TSP(object):
         return shortests_path
 
     def __get_shortest_path(
-        self, origin: np.int8, destination_1: np.int8, destination_2: np.int8
+        self,
+        origin: GENE_DTYPE,
+        destination_1: GENE_DTYPE,
+        destination_2: GENE_DTYPE,
     ):
         """
         By default the shortests path will be used as selection for
@@ -335,9 +333,7 @@ class TSP(object):
 
         for generation in np.arange(self.generation_number).tolist():
             fitness = self.__calculate_fitness()
-            print(
-                f"Shortest path on generation {generation}: {np.min(fitness)}"
-            )
+            print(f"Shortest path gen {generation}: {np.min(fitness):,} meters")
             for i in np.arange(self.population_number).tolist():
                 population = self.populations[i]
                 population_fitness = fitness[i]
