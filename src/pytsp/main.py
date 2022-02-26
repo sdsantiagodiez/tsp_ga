@@ -2,7 +2,7 @@ import sys
 
 sys.path.append(".")  # until structured as package
 
-from util.DataGenerator import DataGenerator  # noqa: E402
+from util.data_generator import DataGenerator  # noqa: E402
 from genetic_algorithm.base import TSP  # noqa: E402
 
 
