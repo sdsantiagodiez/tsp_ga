@@ -28,10 +28,10 @@ def main(
     uniform_population_mutation_rate: bool,
     selection_threshold: int,
 ):
+    print("Generating cities...")
     city_data = DataGenerator(num_cities=num_cities, seed=seed_cities)
-    print(city_data.selected_cities)
-    print(city_data.distances)
 
+    print("Running algorithm")
     tsp_base = TSP(
         city_data.distances,
         generation_number=generation_number,

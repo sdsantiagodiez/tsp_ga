@@ -6,7 +6,6 @@ from geopy.distance import geodesic
 class DataGenerator(object):
     MIN_NUM_CITIES: int = 5
     CITIES_DATA_PATH: str = "../../data/starbucks_us_locations.csv"
-    DISTANCE_ROUNDING: int = 4
 
     def __init__(self, num_cities: int = 10, seed: int = 42):
         self.all_cities = self.__get_all_cities()
@@ -69,7 +68,7 @@ class DataGenerator(object):
 
     def __generate_distances(self, distance_type: str = "geodesic"):
         cities_distance = np.full(
-            (self.num_cities, self.num_cities), np.inf, dtype=np.float16
+            (self.num_cities, self.num_cities), np.inf, dtype=np.int64
         )
 
         for origin_index, origin in self.selected_cities.iterrows():
@@ -98,9 +97,9 @@ class DataGenerator(object):
         if distance_type == "geodesic":
             distance = geodesic(
                 origin_coordinates, destination_coordinates
-            ).kilometers
+            ).meters
 
-        return round(distance, self.DISTANCE_ROUNDING)
+        return distance
 
     def generate_new_cities_selection(
         self, num_cities: int = None, seed: int = 42

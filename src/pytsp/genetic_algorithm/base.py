@@ -183,21 +183,11 @@ class TSP(object):
         for i in np.arange(self.gene_size - 1).tolist():
             one_hot_distances[gene[i], gene[i + 1]] = 1
         one_hot_distances[gene[self.gene_size - 1], gene[0]] = 1
-        fitness = np.nansum(one_hot_distances * self.distances)
 
-        if fitness == np.inf:
-            print(gene)
-            print(one_hot_distances)
-            for i in np.arange(self.gene_size).tolist():
-                for j in np.arange(self.gene_size).tolist():
-                    if i != j and self.distances[i, j] == np.inf:
-                        print(f"{i} and {j}")
-
-            raise ValueError("yep")
         return np.nansum(one_hot_distances * self.distances)
 
     def __calculate_population_fitness(self, population: np.ndarray):
-        population_fitness = np.full(self.population_size, 0, dtype=np.float32)
+        population_fitness = np.full(self.population_size, 0, dtype=np.int64)
         for i in np.arange(self.population_size).tolist():
             population_fitness[i] = self.__calculate_individual_fitness(
                 population[i]
@@ -207,7 +197,7 @@ class TSP(object):
 
     def __calculate_fitness(self):
         fitness = np.zeros(
-            (self.population_number, self.population_size), dtype=np.float32
+            (self.population_number, self.population_size), dtype=np.int64
         )
         for i in np.arange(self.population_number).tolist():
             fitness[i] = self.__calculate_population_fitness(
@@ -299,7 +289,7 @@ class TSP(object):
     def __get_shortest_path_from_array(
         self, origin: np.int8, destionations: np.ndarray
     ):
-        shortests_path: np.float32 = np.finfo(np.float32).max
+        shortests_path: np.int64 = np.iinfo(np.int64).max
         for i in np.arange(destionations.size):
             if shortests_path > self.distances[origin, destionations[i]]:
                 shortests_path = destionations[i]
@@ -335,7 +325,8 @@ class TSP(object):
         for generation in np.arange(self.generation_number).tolist():
             fitness = self.__calculate_fitness()
             print(
-                f"Shortest path on generation {generation}: {np.min(fitness)}"
+                f"Shortest path on generation \n"
+                f"{generation}: {np.min(fitness):,} meters"
             )
             for i in np.arange(self.population_number).tolist():
                 population = self.populations[i]
