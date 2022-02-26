@@ -1,4 +1,5 @@
 import numpy as np
+from tqdm import tqdm
 
 GENE_DTYPE: type = np.int16
 DISTANCES_DTYPE: type = np.int64
@@ -334,7 +335,7 @@ class TSP(object):
         for generation in np.arange(self.generation_number).tolist():
             fitness = self.__calculate_fitness()
             print(f"Shortest path gen {generation}: {np.min(fitness):,} meters")
-            for i in np.arange(self.population_number).tolist():
+            for i in tqdm(np.arange(self.population_number).tolist()):
                 population = self.populations[i]
                 population_fitness = fitness[i]
                 mutation_rate = self.populations_mutation_rate[i]

@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from geopy.distance import geodesic
+from tqdm import tqdm
 
 CITIES_DATA_PATH: str = "../../data/starbucks_us_locations.csv"
 
@@ -86,18 +87,17 @@ class DataGenerator(object):
             (self.num_cities, self.num_cities), np.inf, dtype=np.int64
         )
 
-        for origin_index, origin in self.selected_cities.iterrows():
-            for (
-                destination_index,
-                destination,
-            ) in self.selected_cities.iterrows():
+        for origin_index, origin_coordinates in tqdm(
+            self.selected_cities["coordinates"].to_dict().items()
+        ):
+            for destination_index, destination_coordinates in (
+                self.selected_cities["coordinates"].to_dict().items()
+            ):
                 if origin_index != destination_index:
                     cities_distance[
                         origin_index, destination_index
                     ] = self.__get_distance(
-                        origin["coordinates"],
-                        destination["coordinates"],
-                        distance_type=distance_type,
+                        origin_coordinates, destination_coordinates, "geodesic"
                     )
 
         return cities_distance
