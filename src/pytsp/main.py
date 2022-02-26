@@ -3,8 +3,9 @@ import argparse
 
 sys.path.append(".")  # until structured as package
 
-from util.data_generator import DataGenerator  # noqa: E402
-from calculate.base import TSP  # noqa: E402
+from util.data_generator import DataGenerator
+from calculate.base import TSP
+from util.benchmark import get_benchmark_route
 
 __DEFAULT_VALUES = {
     "num-cities": 10,
@@ -16,6 +17,7 @@ __DEFAULT_VALUES = {
     "max-mutation-rate": 0.35,
     "uniform-population-mutation-rate": False,
     "selection-threshold": 0,
+    "verbose": False,
 }
 
 
@@ -29,12 +31,14 @@ def main(
     max_mutation_rate: float,
     uniform_population_mutation_rate: bool,
     selection_threshold: int,
+    verbose: bool,
 ):
     print("Generating cities...")
     city_data = DataGenerator(
         num_cities=num_cities,
         seed=seed_cities,
         allow_repeating_cities=allow_repeating_cities,
+        verbose=verbose,
     )
 
     print("Running algorithm")
@@ -47,7 +51,12 @@ def main(
         uniform_population_mutation_rate=uniform_population_mutation_rate,
         selection_threshold=selection_threshold,
     )
-    tsp_base.run()
+    benchmark_route, benchmark_route_distance = get_benchmark_route(
+        tsp_base.distances
+    )
+    print(benchmark_route)
+    print(f"Benchmark route distance: {benchmark_route_distance:,}")
+    tsp_base.run(verbose=verbose)
 
 
 def get_args():
@@ -109,6 +118,12 @@ def get_args():
         type=int,
         default=__DEFAULT_VALUES["selection-threshold"],
     )
+    parser.add_argument(
+        "--verbose",
+        help="Enable/disable progress bar",
+        type=bool,
+        default=__DEFAULT_VALUES["verbose"],
+    )
     return parser.parse_args()
 
 
@@ -124,4 +139,5 @@ if __name__ == "__main__":
         max_mutation_rate=args.max_mutation_rate,
         uniform_population_mutation_rate=args.uniform_population_mutation_rate,
         selection_threshold=args.selection_threshold,
+        verbose=args.verbose,
     )

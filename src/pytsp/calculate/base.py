@@ -1,3 +1,4 @@
+from util.distances import get_closest_destination, get_route_distance
 import numpy as np
 from tqdm import tqdm
 
@@ -180,23 +181,13 @@ class TSP(object):
         self.populations = self.__get_new_populations()
         self.populations_mutation_rate = self.__get_populations_mutation_rates()
 
-    def __calculate_individual_fitness(self, gene: np.ndarray):
-        one_hot_distances = np.zeros(
-            (self.gene_size, self.gene_size), dtype=np.int8
-        )
-        for i in np.arange(self.gene_size - 1).tolist():
-            one_hot_distances[gene[i], gene[i + 1]] = 1
-        one_hot_distances[gene[self.gene_size - 1], gene[0]] = 1
-
-        return np.nansum(one_hot_distances * self.distances)
-
     def __calculate_population_fitness(self, population: np.ndarray):
         population_fitness = np.full(
             self.population_size, 0, dtype=DISTANCES_DTYPE
         )
         for i in np.arange(self.population_size).tolist():
-            population_fitness[i] = self.__calculate_individual_fitness(
-                population[i]
+            population_fitness[i] = get_route_distance(
+                self.distances, population[i]
             )
 
         return population_fitness
@@ -271,19 +262,21 @@ class TSP(object):
                 parent_1_reordered[i] not in child
                 and parent_2_reordered[i] not in child
             ):
-                child[i] = self.__get_shortest_path(
+                child[i] = get_closest_destination(
+                    self.distances,
                     child[i - 1],
                     parent_1_reordered[i],
                     parent_2_reordered[i],
                 )
+
             elif (
                 parent_1_reordered[i] in child
                 and parent_2_reordered[i] in child
             ):
                 all_cities = np.arange(self.gene_size)
                 not_in_child = all_cities[~np.in1d(all_cities, child)]
-                child[i] = self.__get_shortest_path_from_array(
-                    child[i - 1], not_in_child
+                child[i] = get_closest_destination(
+                    self.distances, child[i - 1], not_in_child
                 )
 
             elif parent_1_reordered[i] in child:
@@ -293,34 +286,6 @@ class TSP(object):
 
         return child
 
-    def __get_shortest_path_from_array(
-        self, origin: GENE_DTYPE, destionations: np.ndarray
-    ):
-        shortests_path: DISTANCES_DTYPE = np.iinfo(DISTANCES_DTYPE).max
-        for i in np.arange(destionations.size):
-            if shortests_path > self.distances[origin, destionations[i]]:
-                shortests_path = destionations[i]
-
-        return shortests_path
-
-    def __get_shortest_path(
-        self,
-        origin: GENE_DTYPE,
-        destination_1: GENE_DTYPE,
-        destination_2: GENE_DTYPE,
-    ):
-        """
-        By default the shortests path will be used as selection for
-        which destination to choose. This could be change to other
-        strategies
-        """
-        return (
-            destination_1
-            if self.distances[origin, destination_1]
-            < self.distances[origin, destination_2]
-            else destination_2
-        )
-
     def __mutate(self, individual: np.ndarray, mutation_rate: np.float16):
         invidivual_mutation_rate = np.random.uniform(0, 1, 1)[0]
         if invidivual_mutation_rate <= mutation_rate:
@@ -329,13 +294,15 @@ class TSP(object):
                 [genes_to_mutate[1], genes_to_mutate[0]]
             ]
 
-    def run(self):
+    def run(self, verbose: bool = True):
         self.__initialize_populations()
-
+        disable_tqdm = not verbose
         for generation in np.arange(self.generation_number).tolist():
             fitness = self.__calculate_fitness()
             print(f"Shortest path gen {generation}: {np.min(fitness):,} meters")
-            for i in tqdm(np.arange(self.population_number).tolist()):
+            for i in tqdm(
+                np.arange(self.population_number).tolist(), disable=disable_tqdm
+            ):
                 population = self.populations[i]
                 population_fitness = fitness[i]
                 mutation_rate = self.populations_mutation_rate[i]

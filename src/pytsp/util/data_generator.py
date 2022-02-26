@@ -15,11 +15,12 @@ class DataGenerator(object):
         seed: int = 42,
         allow_repeating_cities: bool = False,
         cities_data_path: str = CITIES_DATA_PATH,
+        verbose: bool = True,
     ):
         self.all_cities = self.__get_all_cities(cities_data_path)
         self.__set_num_cities(num_cities)
         self.generate_new_cities_selection(
-            num_cities, seed, allow_repeating_cities
+            num_cities, seed, allow_repeating_cities, verbose
         )
 
     @property
@@ -82,13 +83,17 @@ class DataGenerator(object):
 
         return selected_cities.reset_index(drop=True)
 
-    def __generate_distances(self, distance_type: str = "geodesic"):
+    def __generate_distances(
+        self, distance_type: str = "geodesic", verbose: bool = True
+    ):
+        disable_tqdm = not verbose
         cities_distance = np.full(
             (self.num_cities, self.num_cities), np.inf, dtype=np.int64
         )
 
         for origin_index, origin_coordinates in tqdm(
-            self.selected_cities["coordinates"].to_dict().items()
+            self.selected_cities["coordinates"].to_dict().items(),
+            disable=disable_tqdm,
         ):
             for destination_index, destination_coordinates in (
                 self.selected_cities["coordinates"].to_dict().items()
@@ -121,10 +126,11 @@ class DataGenerator(object):
         num_cities: int = None,
         seed: int = 42,
         allow_repeating_cities: bool = False,
+        verbose: bool = True,
     ) -> None:
         if num_cities is not None:
             self.__set_num_cities(num_cities)
         self._selected_cities = self.__get_selected_cities(
             seed, allow_repeating_cities
         )
-        self._distances = self.__generate_distances()
+        self._distances = self.__generate_distances(verbose=verbose)
