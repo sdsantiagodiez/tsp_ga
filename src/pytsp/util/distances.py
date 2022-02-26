@@ -66,11 +66,12 @@ def get_a_fast_route(distance_matrix: np.ndarray):
             distance_matrix, route[i], destinations_not_in_route
         )
 
-    return route, get_route_distance(distance_matrix, route)
+    return route
 
 
 def get_a_fast_route_and_distance(distance_matrix: np.ndarray):
     benchmark_route = get_a_fast_route(distance_matrix)
+    print(benchmark_route)
     benchmark_route_distance = get_route_distance(
         distance_matrix, benchmark_route
     )

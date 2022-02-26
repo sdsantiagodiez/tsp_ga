@@ -18,7 +18,7 @@ __DEFAULT_VALUES = {
     "uniform-population-mutation-rate": False,
     "selection-threshold": 0,
     "enhanced-individuals": 0,
-    "verbose": False,
+    "verbose": True,
 }
 
 
