@@ -109,12 +109,3 @@ class DataGenerator(object):
             self.__set_num_cities(num_cities)
         self._selected_cities = self.__get_selected_cities(seed)
         self._distances = self.__generate_distances()
-
-
-def main():
-    dg = DataGenerator()
-    print(f"DataGenerator class with {dg.num_cities} cities.")
-
-
-if __name__ == "__main__":
-    main()
