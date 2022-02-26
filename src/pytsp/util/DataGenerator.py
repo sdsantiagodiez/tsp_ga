@@ -5,7 +5,7 @@ from geopy.distance import geodesic
 
 class DataGenerator(object):
     MIN_NUM_CITIES: int = 5
-    CITIES_DATA_PATH: str = "../data/starbucks_us_locations.csv"
+    CITIES_DATA_PATH: str = "../../data/starbucks_us_locations.csv"
     DISTANCE_ROUNDING: int = 4
 
     def __init__(self, num_cities: int = 10, seed: int = 42):

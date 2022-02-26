@@ -185,7 +185,6 @@ class TSP(object):
         one_hot_distances[gene[self.gene_size - 1], gene[0]] = 1
         fitness = np.nansum(one_hot_distances * self.distances)
 
-        # debugging
         if fitness == np.inf:
             print(gene)
             print(one_hot_distances)

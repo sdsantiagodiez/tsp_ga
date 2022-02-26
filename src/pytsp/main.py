@@ -1,8 +1,9 @@
 import sys
-from DataGenerator import DataGenerator
-from tsp_base import TSP
 
 sys.path.append(".")  # until structured as package
+
+from util.DataGenerator import DataGenerator  # noqa: E402
+from genetic_algorithm.base import TSP  # noqa: E402
 
 
 def main():
