@@ -5,7 +5,7 @@ sys.path.append(".")  # until structured as package
 
 from util.data_generator import DataGenerator
 from calculate.base import TSP
-from util.benchmark import get_benchmark_route
+from util.distances import get_a_fast_route_and_distance
 
 __DEFAULT_VALUES = {
     "num-cities": 10,
@@ -17,7 +17,8 @@ __DEFAULT_VALUES = {
     "max-mutation-rate": 0.35,
     "uniform-population-mutation-rate": False,
     "selection-threshold": 0,
-    "verbose": False,
+    "enhanced-individuals": 0,
+    "verbose": True,
 }
 
 
@@ -31,6 +32,7 @@ def main(
     max_mutation_rate: float,
     uniform_population_mutation_rate: bool,
     selection_threshold: int,
+    enhanced_individuals: int,
     verbose: bool,
 ):
     print("Generating cities...")
@@ -50,8 +52,9 @@ def main(
         max_mutation_rate=max_mutation_rate,
         uniform_population_mutation_rate=uniform_population_mutation_rate,
         selection_threshold=selection_threshold,
+        enhanced_individuals=enhanced_individuals,
     )
-    benchmark_route, benchmark_route_distance = get_benchmark_route(
+    benchmark_route, benchmark_route_distance = get_a_fast_route_and_distance(
         tsp_base.distances
     )
     print(benchmark_route)
@@ -119,6 +122,12 @@ def get_args():
         default=__DEFAULT_VALUES["selection-threshold"],
     )
     parser.add_argument(
+        "--enhanced-individuals",
+        help="Number of individuals to enhance on each population",
+        type=int,
+        default=__DEFAULT_VALUES["enhanced-individuals"],
+    )
+    parser.add_argument(
         "--verbose",
         help="Enable/disable progress bar",
         type=bool,
@@ -139,5 +148,6 @@ if __name__ == "__main__":
         max_mutation_rate=args.max_mutation_rate,
         uniform_population_mutation_rate=args.uniform_population_mutation_rate,
         selection_threshold=args.selection_threshold,
+        enhanced_individuals=args.enhanced_individuals,
         verbose=args.verbose,
     )
