@@ -76,7 +76,7 @@ class DataGenerator(object):
                     random_city = self.all_cities.sample(
                         random_state=random_state
                     )
-                random_state += 1
+            random_state += 1
             selected_cities = pd.concat([selected_cities, random_city])
 
         return selected_cities.reset_index(drop=True)
