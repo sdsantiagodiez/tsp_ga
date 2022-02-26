@@ -9,6 +9,7 @@ from genetic_algorithm.base import TSP  # noqa: E402
 __DEFAULT_VALUES = {
     "num-cities": 10,
     "seed-cities": 42,
+    "allow-repeating-cities": False,
     "generation-number": 10,
     "population-number": 20,
     "population-size": 20,
@@ -21,6 +22,7 @@ __DEFAULT_VALUES = {
 def main(
     num_cities: int,
     seed_cities: int,
+    allow_repeating_cities: bool,
     generation_number: int,
     population_number: int,
     population_size: int,
@@ -29,7 +31,11 @@ def main(
     selection_threshold: int,
 ):
     print("Generating cities...")
-    city_data = DataGenerator(num_cities=num_cities, seed=seed_cities)
+    city_data = DataGenerator(
+        num_cities=num_cities,
+        seed=seed_cities,
+        allow_repeating_cities=allow_repeating_cities,
+    )
 
     print("Running algorithm")
     tsp_base = TSP(
@@ -60,6 +66,12 @@ def get_args():
         help="Seed used to randomly select and reproduce selection of city",
         type=int,
         default=__DEFAULT_VALUES["seed-cities"],
+    )
+    parser.add_argument(
+        "--allow-repeating-cities",
+        help="Allows cities to be selected more than once during generation",
+        type=bool,
+        default=__DEFAULT_VALUES["allow-repeating-cities"],
     )
     parser.add_argument(
         "--generation-number",
@@ -105,6 +117,7 @@ if __name__ == "__main__":
     main(
         num_cities=args.num_cities,
         seed_cities=args.seed_cities,
+        allow_repeating_cities=args.allow_repeating_cities,
         generation_number=args.generation_number,
         population_number=args.population_number,
         population_size=args.population_size,

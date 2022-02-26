@@ -7,10 +7,17 @@ class DataGenerator(object):
     MIN_NUM_CITIES: int = 5
     CITIES_DATA_PATH: str = "../../data/starbucks_us_locations.csv"
 
-    def __init__(self, num_cities: int = 10, seed: int = 42):
+    def __init__(
+        self,
+        num_cities: int = 10,
+        seed: int = 42,
+        allow_repeating_cities: bool = False,
+    ):
         self.all_cities = self.__get_all_cities()
         self.__set_num_cities(num_cities)
-        self.generate_new_cities_selection(num_cities, seed)
+        self.generate_new_cities_selection(
+            num_cities, seed, allow_repeating_cities
+        )
 
     @property
     def num_cities(self):
@@ -49,19 +56,24 @@ class DataGenerator(object):
 
         return cities
 
-    def __get_selected_cities(self, seed: int = 42):
+    def __get_selected_cities(
+        self, seed: int = 42, allow_repeating_cities: bool = False
+    ):
         city_columns = self.all_cities.columns.tolist()
         selected_cities = pd.DataFrame(columns=city_columns)
         random_state = seed
         for city in range(self.num_cities):
             random_city = self.all_cities.sample(random_state=random_state)
-            while (
-                random_city["state_city"]
-                .isin(selected_cities["state_city"])
-                .any()
-            ):
-                random_state += 1
-                random_city = self.all_cities.sample(random_state=random_state)
+            if not allow_repeating_cities:
+                while (
+                    random_city["state_city"]
+                    .isin(selected_cities["state_city"])
+                    .any()
+                ):
+                    random_state += 1
+                    random_city = self.all_cities.sample(
+                        random_state=random_state
+                    )
             selected_cities = pd.concat([selected_cities, random_city])
 
         return selected_cities.reset_index(drop=True)
@@ -102,9 +114,14 @@ class DataGenerator(object):
         return distance
 
     def generate_new_cities_selection(
-        self, num_cities: int = None, seed: int = 42
+        self,
+        num_cities: int = None,
+        seed: int = 42,
+        allow_repeating_cities: bool = False,
     ) -> None:
         if num_cities is not None:
             self.__set_num_cities(num_cities)
-        self._selected_cities = self.__get_selected_cities(seed)
+        self._selected_cities = self.__get_selected_cities(
+            seed, allow_repeating_cities
+        )
         self._distances = self.__generate_distances()
