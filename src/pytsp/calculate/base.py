@@ -1,4 +1,8 @@
-from util.distances import get_closest_destination, get_route_distance
+from util.distances import (
+    get_closest_destination,
+    get_route_distance,
+    get_a_fast_route,
+)
 import numpy as np
 from tqdm import tqdm
 
@@ -12,6 +16,7 @@ class TSP(object):
     __MIN_GENERATION_NUMBER: int = 5
     __MIN_SELECTION_THRESHOLD: int = 2
     __MAX_SELECTION_THRESHOLD: int
+    __MAX_ENHANCED_INDIVIDUALS: int
 
     def __init__(
         self,
@@ -22,6 +27,7 @@ class TSP(object):
         max_mutation_rate: float = 0.35,
         uniform_population_mutation_rate: bool = False,
         selection_threshold: int = 0,
+        enhanced_individuals: int = 0,
     ):
         self.__initialize_distances(distances)
         self.generation_number = generation_number
@@ -30,11 +36,13 @@ class TSP(object):
         self.max_mutation_rate = max_mutation_rate
         self.uniform_population_mutation_rate = uniform_population_mutation_rate
         self.__MAX_SELECTION_THRESHOLD = self.population_size // 2
+        self.__MAX_ENHANCED_INDIVIDUALS = self.population_size
         self.selection_threshold = (
             self.__MAX_SELECTION_THRESHOLD
             if not selection_threshold
             else selection_threshold
         )
+        self.enhanced_individuals = enhanced_individuals
 
     @property
     def generation_number(self):
@@ -125,6 +133,19 @@ class TSP(object):
 
         self._distances = value
 
+    @property
+    def enhanced_individuals(self):
+        return self._enhanced_individuals
+
+    @enhanced_individuals.setter
+    def enhanced_individuals(self, value: float):
+        if not (0 <= value <= self.__MAX_ENHANCED_INDIVIDUALS):
+            value_error_message = "Enhanced individuals have to be between "
+            raise ValueError(
+                f"{value_error_message} 0 and {self.__MAX_SELECTION_THRESHOLD}"
+            )
+        self._enhanced_individuals = value
+
     def __initialize_distances(self, distances: np.ndarray):
         self.distances = distances
         self.gene_size = self.distances.shape[0]
@@ -137,6 +158,12 @@ class TSP(object):
             population[i] = np.random.choice(
                 self.gene_size, self.gene_size, replace=False
             )
+
+        random_individuals = np.random.choice(
+            self.population_size, self.enhanced_individuals, replace=False
+        )
+        for i in np.arange(self.enhanced_individuals).tolist():
+            population[random_individuals[i]] = get_a_fast_route(self.distances)
 
         return population
 

@@ -50,3 +50,29 @@ def get_route_distance(distance_matrix: np.ndarray, route: np.ndarray):
     one_hot_distances[route[route_size - 1], route[0]] = 1
 
     return np.nansum(one_hot_distances * distance_matrix)
+
+
+def get_a_fast_route(distance_matrix: np.ndarray):
+    number_of_cities: int = distance_matrix.shape[0]
+    all_cities = np.arange(number_of_cities)
+    route: np.ndarray = np.full(number_of_cities, -1, dtype=np.int16)
+    route[0] = np.random.choice(number_of_cities, 1)[0]
+
+    for i in np.arange(0, number_of_cities - 1, 1, dtype=int):
+        destinations_not_in_route: np.ndarray = all_cities[
+            ~np.in1d(all_cities, route)
+        ]
+        route[i + 1] = get_closest_destination(
+            distance_matrix, route[i], destinations_not_in_route
+        )
+
+    return route, get_route_distance(distance_matrix, route)
+
+
+def get_a_fast_route_and_distance(distance_matrix: np.ndarray):
+    benchmark_route = get_a_fast_route(distance_matrix)
+    benchmark_route_distance = get_route_distance(
+        distance_matrix, benchmark_route
+    )
+
+    return benchmark_route, benchmark_route_distance
