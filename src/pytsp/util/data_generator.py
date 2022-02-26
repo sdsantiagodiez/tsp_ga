@@ -1,19 +1,22 @@
 import pandas as pd
 import numpy as np
 from geopy.distance import geodesic
+from tqdm import tqdm
+
+CITIES_DATA_PATH: str = "../../data/starbucks_us_locations.csv"
 
 
 class DataGenerator(object):
     MIN_NUM_CITIES: int = 5
-    CITIES_DATA_PATH: str = "../../data/starbucks_us_locations.csv"
 
     def __init__(
         self,
         num_cities: int = 10,
         seed: int = 42,
         allow_repeating_cities: bool = False,
+        cities_data_path: str = CITIES_DATA_PATH,
     ):
-        self.all_cities = self.__get_all_cities()
+        self.all_cities = self.__get_all_cities(cities_data_path)
         self.__set_num_cities(num_cities)
         self.generate_new_cities_selection(
             num_cities, seed, allow_repeating_cities
@@ -40,9 +43,9 @@ class DataGenerator(object):
     def distances(self):
         return self._distances
 
-    def __get_all_cities(self):
+    def __get_all_cities(self, cities_data_path: str = CITIES_DATA_PATH):
         columns = ["longitude", "latitude", "id", "address"]
-        cities = pd.read_csv(self.CITIES_DATA_PATH, names=columns, header=None)
+        cities = pd.read_csv(cities_data_path, names=columns, header=None)
         cities.dropna(inplace=True)
         cities[["state", "city"]] = cities.id.str.split("-", expand=True)[
             [1, 2]
@@ -74,6 +77,7 @@ class DataGenerator(object):
                     random_city = self.all_cities.sample(
                         random_state=random_state
                     )
+            random_state += 1
             selected_cities = pd.concat([selected_cities, random_city])
 
         return selected_cities.reset_index(drop=True)
@@ -83,18 +87,17 @@ class DataGenerator(object):
             (self.num_cities, self.num_cities), np.inf, dtype=np.int64
         )
 
-        for origin_index, origin in self.selected_cities.iterrows():
-            for (
-                destination_index,
-                destination,
-            ) in self.selected_cities.iterrows():
+        for origin_index, origin_coordinates in tqdm(
+            self.selected_cities["coordinates"].to_dict().items()
+        ):
+            for destination_index, destination_coordinates in (
+                self.selected_cities["coordinates"].to_dict().items()
+            ):
                 if origin_index != destination_index:
                     cities_distance[
                         origin_index, destination_index
                     ] = self.__get_distance(
-                        origin["coordinates"],
-                        destination["coordinates"],
-                        distance_type=distance_type,
+                        origin_coordinates, destination_coordinates, "geodesic"
                     )
 
         return cities_distance
