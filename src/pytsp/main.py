@@ -4,7 +4,7 @@ import argparse
 sys.path.append(".")  # until structured as package
 
 from util.data_generator import DataGenerator  # noqa: E402
-from genetic_algorithm.base import TSP  # noqa: E402
+from calculate.base import TSP  # noqa: E402
 
 __DEFAULT_VALUES = {
     "num-cities": 10,
