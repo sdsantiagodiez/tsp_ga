@@ -1,7 +1,10 @@
 import pandas as pd
 import numpy as np
-from geopy.distance import geodesic
 from tqdm import tqdm
+import sys
+
+sys.path.append(".")  # until structured as package
+from util.distances import get_distance
 
 CITIES_DATA_PATH: str = "../../data/starbucks_us_locations.csv"
 
@@ -63,10 +66,19 @@ class DataGenerator(object):
     def __get_selected_cities(
         self, seed: int = 42, allow_repeating_cities: bool = False
     ):
+        exists_more_distinct_cities_than_selected = (
+            len(self.all_cities["state_city"].unique()) > self.num_cities
+        )
+        if (
+            not exists_more_distinct_cities_than_selected
+            and not allow_repeating_cities
+        ):
+            raise ValueError("Available distinct cities are less than selected")
+
         city_columns = self.all_cities.columns.tolist()
         selected_cities = pd.DataFrame(columns=city_columns)
         random_state = seed
-        for city in range(self.num_cities):
+        for _ in range(self.num_cities):
             random_city = self.all_cities.sample(random_state=random_state)
             if not allow_repeating_cities:
                 while (
@@ -101,25 +113,13 @@ class DataGenerator(object):
                 if origin_index != destination_index:
                     cities_distance[
                         origin_index, destination_index
-                    ] = self.__get_distance(
-                        origin_coordinates, destination_coordinates, "geodesic"
+                    ] = get_distance(
+                        origin_coordinates,
+                        destination_coordinates,
+                        distance_type,
                     )
 
         return cities_distance
-
-    def __get_distance(
-        self,
-        origin_coordinates,
-        destination_coordinates,
-        distance_type: str = "geodesic",
-    ):
-        distance = np.inf
-        if distance_type == "geodesic":
-            distance = geodesic(
-                origin_coordinates, destination_coordinates
-            ).meters
-
-        return distance
 
     def generate_new_cities_selection(
         self,

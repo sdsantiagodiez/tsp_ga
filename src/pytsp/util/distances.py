@@ -1,5 +1,6 @@
 import numpy as np
 from multipledispatch import dispatch
+from geopy.distance import geodesic
 
 
 @dispatch(np.ndarray, np.int16, np.ndarray)
@@ -77,3 +78,15 @@ def get_a_fast_route_and_distance(distance_matrix: np.ndarray):
     )
 
     return benchmark_route, benchmark_route_distance
+
+
+def get_distance(
+    origin_coordinates,
+    destination_coordinates,
+    distance_type: str = "geodesic",
+):
+    distance = np.inf
+    if distance_type == "geodesic":
+        distance = geodesic(origin_coordinates, destination_coordinates).meters
+
+    return distance
