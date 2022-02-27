@@ -5,6 +5,7 @@ sys.path.append(".")  # until structured as package
 
 from util.data_generator import DataGenerator
 from calculate.base import TSP
+from calculate.base_numba import TSP as TSP_numba  # noqa F401
 from util.distances import get_a_fast_route_and_distance
 
 __DEFAULT_VALUES = {
@@ -54,11 +55,9 @@ def main(
         selection_threshold=selection_threshold,
         enhanced_individuals=enhanced_individuals,
     )
-    benchmark_route, benchmark_route_distance = get_a_fast_route_and_distance(
-        tsp_base.distances
-    )
-    print(benchmark_route)
-    print(f"Benchmark route distance: {benchmark_route_distance:,}")
+
+    get_benchmark(tsp_base.distances)
+
     tsp_base.run(verbose=verbose)
 
 
@@ -134,6 +133,14 @@ def get_args():
         default=__DEFAULT_VALUES["verbose"],
     )
     return parser.parse_args()
+
+
+def get_benchmark(distance_matrix):
+    benchmark_route, benchmark_route_distance = get_a_fast_route_and_distance(
+        distance_matrix
+    )
+    print(benchmark_route)
+    print(f"Benchmark route distance: {benchmark_route_distance:,}")
 
 
 if __name__ == "__main__":
