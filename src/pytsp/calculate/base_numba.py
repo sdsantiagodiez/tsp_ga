@@ -228,18 +228,14 @@ class TSP(object):
 
         return fitness
 
-    def __selection_on_population(
-        self, population: np.ndarray, population_fitness: np.ndarray
-    ):
+    def __selection_on_population(self, population_fitness: np.ndarray):
         """
         Selection strategy used is based on fitness to allow maximum
         parallelization. Roulette and tournament could be considered,
         although it's expected to not perform as fast
 
         """
-        population_fitness_sorted = np.argsort(population_fitness)
-
-        return population_fitness_sorted[: self.__MAX_SELECTION_THRESHOLD]
+        return np.argsort(population_fitness)[: self.__MAX_SELECTION_THRESHOLD]
 
     def __get_crossover_parents(
         self, popoulation: np.ndarray, fittest_invidivuals: np.ndarray
@@ -332,6 +328,6 @@ class TSP(object):
                 population_fitness = fitness[i]
                 mutation_rate = self.populations_mutation_rate[i]
                 fittest_individuals = self.__selection_on_population(
-                    population, population_fitness
+                    population_fitness
                 )
                 self.__crossover(population, mutation_rate, fittest_individuals)
