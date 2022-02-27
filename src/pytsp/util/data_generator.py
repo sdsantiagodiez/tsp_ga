@@ -6,7 +6,11 @@ import sys
 sys.path.append(".")  # until structured as package
 from util.distances import get_distance
 
-CITIES_DATA_PATH: str = "../../data/starbucks_us_locations.csv"
+DEFAULT_CITIES_DATA_PATH: str = "../../data/starbucks_us_locations.csv"
+DEFAULT_SEED: int = 42
+DEFAULT_NUM_CITIES: int = 10
+DEFAULT_ALLOW_REPEATING_CITIES: bool = False
+DEFAULT_VERBOSE: bool = True
 
 
 class DataGenerator(object):
@@ -14,11 +18,11 @@ class DataGenerator(object):
 
     def __init__(
         self,
-        num_cities: int = 10,
-        seed: int = 42,
-        allow_repeating_cities: bool = False,
-        cities_data_path: str = CITIES_DATA_PATH,
-        verbose: bool = True,
+        num_cities: int = DEFAULT_NUM_CITIES,
+        seed: int = DEFAULT_SEED,
+        allow_repeating_cities: bool = DEFAULT_ALLOW_REPEATING_CITIES,
+        cities_data_path: str = DEFAULT_CITIES_DATA_PATH,
+        verbose: bool = DEFAULT_VERBOSE,
     ):
         self.all_cities = self.__get_all_cities(cities_data_path)
         self.__set_num_cities(num_cities)
@@ -47,7 +51,9 @@ class DataGenerator(object):
     def distances(self):
         return self._distances
 
-    def __get_all_cities(self, cities_data_path: str = CITIES_DATA_PATH):
+    def __get_all_cities(
+        self, cities_data_path: str = DEFAULT_CITIES_DATA_PATH
+    ):
         columns = ["longitude", "latitude", "id", "address"]
         cities = pd.read_csv(cities_data_path, names=columns, header=None)
         cities.dropna(inplace=True)
@@ -64,7 +70,9 @@ class DataGenerator(object):
         return cities
 
     def __get_selected_cities(
-        self, seed: int = 42, allow_repeating_cities: bool = False
+        self,
+        seed: int = DEFAULT_SEED,
+        allow_repeating_cities: bool = DEFAULT_ALLOW_REPEATING_CITIES,
     ):
         exists_more_distinct_cities_than_selected = (
             len(self.all_cities["state_city"].unique()) > self.num_cities
@@ -96,7 +104,7 @@ class DataGenerator(object):
         return selected_cities.reset_index(drop=True)
 
     def __generate_distances(
-        self, distance_type: str = "geodesic", verbose: bool = True
+        self, distance_type: str = "geodesic", verbose: bool = DEFAULT_VERBOSE
     ):
         disable_tqdm = not verbose
         cities_distance = np.full(
@@ -124,9 +132,9 @@ class DataGenerator(object):
     def generate_new_cities_selection(
         self,
         num_cities: int = None,
-        seed: int = 42,
-        allow_repeating_cities: bool = False,
-        verbose: bool = True,
+        seed: int = DEFAULT_SEED,
+        allow_repeating_cities: bool = DEFAULT_ALLOW_REPEATING_CITIES,
+        verbose: bool = DEFAULT_VERBOSE,
     ) -> None:
         if num_cities is not None:
             self.__set_num_cities(num_cities)

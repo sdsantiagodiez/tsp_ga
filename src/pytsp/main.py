@@ -1,10 +1,12 @@
 import sys
 import argparse
+from numpy import ndarray
 
 sys.path.append(".")  # until structured as package
 
 from util.data_generator import DataGenerator
-from calculate.base import TSP
+from calculate.base import TSP  # noqa F401
+from calculate.base_numba import TSP as TSP_numba  # noqa F401
 from util.distances import get_a_fast_route_and_distance
 
 __DEFAULT_VALUES = {
@@ -18,6 +20,7 @@ __DEFAULT_VALUES = {
     "uniform-population-mutation-rate": False,
     "selection-threshold": 0,
     "enhanced-individuals": 0,
+    "compute": "numba",
     "verbose": True,
 }
 
@@ -33,6 +36,34 @@ def main(
     uniform_population_mutation_rate: bool,
     selection_threshold: int,
     enhanced_individuals: int,
+    compute: str,
+    verbose: bool,
+):
+
+    distance_matrix = _get_distance_matrix(
+        num_cities, seed_cities, allow_repeating_cities, verbose
+    )
+
+    _get_benchmark(distance_matrix)
+
+    _compute(
+        distance_matrix,
+        generation_number,
+        population_number,
+        population_size,
+        max_mutation_rate,
+        uniform_population_mutation_rate,
+        selection_threshold,
+        enhanced_individuals,
+        compute,
+        verbose,
+    )
+
+
+def _get_distance_matrix(
+    num_cities: int,
+    seed_cities: int,
+    allow_repeating_cities: bool,
     verbose: bool,
 ):
     print("Generating cities...")
@@ -43,9 +74,39 @@ def main(
         verbose=verbose,
     )
 
-    print("Running algorithm")
-    tsp_base = TSP(
-        city_data.distances,
+    return city_data.distances
+
+
+def _get_benchmark(distance_matrix):
+    print("Calculating benchmark route...")
+    benchmark_route, benchmark_route_distance = get_a_fast_route_and_distance(
+        distance_matrix
+    )
+    print(benchmark_route)
+    print(f"Benchmark route distance: {benchmark_route_distance:,}")
+
+
+def _compute(
+    distance_matrix: ndarray,
+    generation_number: int,
+    population_number: int,
+    population_size: int,
+    max_mutation_rate: float,
+    uniform_population_mutation_rate: bool,
+    selection_threshold: int,
+    enhanced_individuals: int,
+    compute: str,
+    verbose: bool,
+):
+    print(f"Initializing genetic algorithm with {compute} implementation...")
+
+    if compute == "numba":
+        compute_base = TSP_numba
+    else:
+        compute_base = TSP
+
+    tsp = compute_base(
+        distance_matrix,
         generation_number=generation_number,
         population_number=population_number,
         population_size=population_size,
@@ -54,15 +115,11 @@ def main(
         selection_threshold=selection_threshold,
         enhanced_individuals=enhanced_individuals,
     )
-    benchmark_route, benchmark_route_distance = get_a_fast_route_and_distance(
-        tsp_base.distances
-    )
-    print(benchmark_route)
-    print(f"Benchmark route distance: {benchmark_route_distance:,}")
-    tsp_base.run(verbose=verbose)
+
+    tsp.run(verbose=verbose)
 
 
-def get_args():
+def _get_args():
     parser = argparse.ArgumentParser(
         description="Run genetic algorithm on Travelling Salesman problem",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -128,6 +185,12 @@ def get_args():
         default=__DEFAULT_VALUES["enhanced-individuals"],
     )
     parser.add_argument(
+        "--compute",
+        help="Chooses implementation: numpy or numba",
+        type=str,
+        default=__DEFAULT_VALUES["compute"],
+    )
+    parser.add_argument(
         "--verbose",
         help="Enable/disable progress bar",
         type=bool,
@@ -137,7 +200,7 @@ def get_args():
 
 
 if __name__ == "__main__":
-    args = get_args()
+    args = _get_args()
     main(
         num_cities=args.num_cities,
         seed_cities=args.seed_cities,
@@ -149,5 +212,6 @@ if __name__ == "__main__":
         uniform_population_mutation_rate=args.uniform_population_mutation_rate,
         selection_threshold=args.selection_threshold,
         enhanced_individuals=args.enhanced_individuals,
+        compute=args.compute,
         verbose=args.verbose,
     )

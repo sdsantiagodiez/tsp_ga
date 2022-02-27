@@ -1,7 +1,9 @@
 from util.distances import (
-    get_closest_destination,
-    get_route_distance,
     get_a_fast_route,
+    get_route_distance,
+    get_destinations_not_in_route,
+    get_closest_destination,
+    get_closest_destination_from_available_routes,
 )
 import numpy as np
 from tqdm import tqdm
@@ -120,12 +122,7 @@ class TSP(object):
     @distances.setter
     def distances(self, value: np.ndarray):
         value_shape = value.shape
-        if len(value_shape) != 2:
-            raise ValueError(
-                "2d with (N,N) shape matrix expected was not satisfied in \n"
-                " the distance matrix"
-            )
-        elif value_shape[0] != value_shape[1]:
+        if len(value_shape) != 2 or value_shape[0] != value_shape[1]:
             raise ValueError(
                 "2d with (N,N) shape matrix expected was not satisfied in \n"
                 " the distance matrix"
@@ -140,7 +137,7 @@ class TSP(object):
     @enhanced_individuals.setter
     def enhanced_individuals(self, value: float):
         if not (0 <= value <= self.__MAX_ENHANCED_INDIVIDUALS):
-            value_error_message = "Enhanced individuals have to be between "
+            value_error_message = "Enhanced individuals should be between "
             raise ValueError(
                 f"{value_error_message} 0 and {self.__MAX_SELECTION_THRESHOLD}"
             )
@@ -231,18 +228,14 @@ class TSP(object):
 
         return fitness
 
-    def __selection_on_population(
-        self, population: np.ndarray, population_fitness: np.ndarray
-    ):
+    def __selection_on_population(self, population_fitness: np.ndarray):
         """
         Selection strategy used is based on fitness to allow maximum
         parallelization. Roulette and tournament could be considered,
         although it's expected to not perform as fast
 
         """
-        population_fitness_sorted = np.argsort(population_fitness)
-
-        return population_fitness_sorted[: self.__MAX_SELECTION_THRESHOLD]
+        return np.argsort(population_fitness)[: self.selection_threshold]
 
     def __get_crossover_parents(
         self, popoulation: np.ndarray, fittest_invidivuals: np.ndarray
@@ -300,9 +293,10 @@ class TSP(object):
                 parent_1_reordered[i] in child
                 and parent_2_reordered[i] in child
             ):
-                all_cities = np.arange(self.gene_size)
-                not_in_child = all_cities[~np.in1d(all_cities, child)]
-                child[i] = get_closest_destination(
+                not_in_child = get_destinations_not_in_route(
+                    self.gene_size, child
+                )
+                child[i] = get_closest_destination_from_available_routes(
                     self.distances, child[i - 1], not_in_child
                 )
 
@@ -334,6 +328,6 @@ class TSP(object):
                 population_fitness = fitness[i]
                 mutation_rate = self.populations_mutation_rate[i]
                 fittest_individuals = self.__selection_on_population(
-                    population, population_fitness
+                    population_fitness
                 )
                 self.__crossover(population, mutation_rate, fittest_individuals)
