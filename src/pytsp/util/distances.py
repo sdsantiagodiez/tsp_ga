@@ -90,7 +90,6 @@ def get_a_fast_route(distance_matrix: np.ndarray):
 @jit(nopython=True)
 def get_a_fast_route_and_distance(distance_matrix: np.ndarray):
     benchmark_route = get_a_fast_route(distance_matrix)
-    print(benchmark_route)
     benchmark_route_distance = get_route_distance(
         distance_matrix, benchmark_route
     )

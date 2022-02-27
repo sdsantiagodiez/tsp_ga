@@ -150,6 +150,8 @@ class TSP(object):
         self.gene_size = self.distances.shape[0]
 
     def run(self, verbose: bool = True):
+        disable_tqdm = not verbose
+
         self.populations = _get_new_populations(
             self.distances,
             self.population_number,
@@ -157,37 +159,63 @@ class TSP(object):
             self.gene_size,
             self.enhanced_individuals,
         )
+
         self.populations_mutation_rate = _get_populations_mutation_rates(
             self.population_number,
             self.uniform_population_mutation_rate,
             self.max_mutation_rate,
         )
 
-        disable_tqdm = not verbose
-        for generation in np.arange(self.generation_number).tolist():
-            fitness = _calculate_fitness(
+        fitness = _calculate_fitness(
+            self.distances,
+            self.populations,
+            self.population_number,
+            self.population_size,
+        )
+        print(f"Baseline fitness: {np.min(fitness):,} meters")
+        for generation in range(self.generation_number):
+            fitness = _run_generation(
                 self.distances,
                 self.populations,
+                fitness,
+                self.populations_mutation_rate,
                 self.population_number,
                 self.population_size,
+                self.selection_threshold,
+                disable_tqdm,
             )
-            print(f"Shortest path gen {generation}: {np.min(fitness):,} meters")
-            for i in tqdm(
-                np.arange(self.population_number).tolist(), disable=disable_tqdm
-            ):
-                population = self.populations[i]
-                population_fitness = fitness[i]
-                mutation_rate = self.populations_mutation_rate[i]
-                fittest_individuals = _selection_on_population(
-                    population_fitness, self.selection_threshold
-                )
-                _crossover(
-                    self.distances,
-                    population,
-                    self.population_size,
-                    mutation_rate,
-                    fittest_individuals,
-                )
+            print(f"Gen {generation+1} fitness: {np.min(fitness):,} meters")
+
+
+def _run_generation(
+    distance_matrix: np.ndarray,
+    populations: np.ndarray,
+    populations_fitness: np.ndarray,
+    populations_mutation_rate: np.ndarray,
+    population_number: int,
+    population_size: int,
+    selection_threshold: int,
+    disable_tqdm: bool,
+):
+
+    for i in tqdm(range(population_number), disable=disable_tqdm):
+        fittest_individuals = _selection_on_population(
+            populations_fitness[i], selection_threshold
+        )
+        _crossover(
+            distance_matrix,
+            populations[i],
+            population_size,
+            populations_mutation_rate[i],
+            fittest_individuals,
+        )
+
+    return _calculate_fitness(
+        distance_matrix,
+        populations,
+        population_number,
+        population_size,
+    )
 
 
 @jit(nopython=True, parallel=True)
