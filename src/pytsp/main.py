@@ -4,7 +4,7 @@ import argparse
 sys.path.append(".")  # until structured as package
 
 from util.data_generator import DataGenerator
-from calculate.base import TSP
+from calculate.base import TSP  # noqa F401
 from calculate.base_numba import TSP as TSP_numba  # noqa F401
 from util.distances import get_a_fast_route_and_distance
 
@@ -45,7 +45,7 @@ def main(
     )
 
     print("Running algorithm")
-    tsp_base = TSP(
+    tsp_base = TSP_numba(
         city_data.distances,
         generation_number=generation_number,
         population_number=population_number,

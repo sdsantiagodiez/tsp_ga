@@ -235,7 +235,7 @@ class TSP(object):
         although it's expected to not perform as fast
 
         """
-        return np.argsort(population_fitness)[: self.__MAX_SELECTION_THRESHOLD]
+        return np.argsort(population_fitness)[: self.selection_threshold]
 
     def __get_crossover_parents(
         self, popoulation: np.ndarray, fittest_invidivuals: np.ndarray

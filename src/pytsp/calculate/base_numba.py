@@ -7,6 +7,8 @@ from util.distances import (
 )
 import numpy as np
 from tqdm import tqdm
+from numba import jit
+from numba import prange
 
 GENE_DTYPE: type = np.int16
 DISTANCES_DTYPE: type = np.int64
@@ -147,179 +149,28 @@ class TSP(object):
         self.distances = distances
         self.gene_size = self.distances.shape[0]
 
-    def __get_new_population(self):
-        population = np.full(
-            (self.population_size, self.gene_size), -1, dtype=GENE_DTYPE
-        )
-        for i in np.arange(self.population_size).tolist():
-            population[i] = np.random.choice(
-                self.gene_size, self.gene_size, replace=False
-            )
-
-        random_individuals = np.random.choice(
-            self.population_size, self.enhanced_individuals, replace=False
-        )
-        for i in np.arange(self.enhanced_individuals).tolist():
-            population[random_individuals[i]] = get_a_fast_route(self.distances)
-
-        return population
-
-    def __get_new_populations(self):
-        populations = np.full(
-            (self.population_number, self.population_size, self.gene_size),
-            -1,
-            dtype=GENE_DTYPE,
-        )
-        for i in np.arange(self.population_number).tolist():
-            populations[i] = self.__get_new_population()
-
-        return populations
-
-    def __get_populations_mutation_rates(self):
-        """
-        When 'uniform_population_mutation_rate' is True, same random mutation
-        rate is applied to all populations.
-
-        When 'uniform_population_mutation_rate' is False, each population
-        receives a random rate.
-
-        In both cases mutation rates are bound between 0 and max_mutation_rate
-        """
-        population_mutation_rates = np.full(
-            (self.population_number), 0, dtype=np.float16
-        )
-        if self.uniform_population_mutation_rate:
-            population_mutation_rates = np.repeat(
-                np.random.uniform(0, self.max_mutation_rate, (1)),
-                self.population_number,
-            )
-        else:
-            population_mutation_rates = np.random.uniform(
-                0, self.max_mutation_rate, (self.population_number)
-            )
-
-        # allow adaptive mutation rates
-        return population_mutation_rates
-
-    def __initialize_populations(self):
-        self.populations = self.__get_new_populations()
-        self.populations_mutation_rate = self.__get_populations_mutation_rates()
-
-    def __calculate_population_fitness(self, population: np.ndarray):
-        population_fitness = np.full(
-            self.population_size, 0, dtype=DISTANCES_DTYPE
-        )
-        for i in np.arange(self.population_size).tolist():
-            population_fitness[i] = get_route_distance(
-                self.distances, population[i]
-            )
-
-        return population_fitness
-
-    def __calculate_fitness(self):
-        fitness = np.zeros(
-            (self.population_number, self.population_size),
-            dtype=DISTANCES_DTYPE,
-        )
-        for i in np.arange(self.population_number).tolist():
-            fitness[i] = self.__calculate_population_fitness(
-                self.populations[i]
-            )
-
-        return fitness
-
-    def __selection_on_population(self, population_fitness: np.ndarray):
-        """
-        Selection strategy used is based on fitness to allow maximum
-        parallelization. Roulette and tournament could be considered,
-        although it's expected to not perform as fast
-
-        """
-        return np.argsort(population_fitness)[: self.__MAX_SELECTION_THRESHOLD]
-
-    def __get_crossover_parents(
-        self, popoulation: np.ndarray, fittest_invidivuals: np.ndarray
-    ):
-        parents = np.random.choice(fittest_invidivuals, 2, replace=False)
-        return popoulation[parents[0]], popoulation[parents[1]]
-
-    def __crossover(
-        self,
-        popoulation: np.ndarray,
-        mutation_rate: np.float16,
-        fittest_invidivuals: np.ndarray,
-    ):
-        for i in np.arange(self.population_size).tolist():
-            if i not in fittest_invidivuals:
-                parent_1, parent_2 = self.__get_crossover_parents(
-                    popoulation, fittest_invidivuals
-                )
-                popoulation[i] = self.__crossover_parents(parent_1, parent_2)
-                self.__mutate(popoulation[i], mutation_rate)
-
-    def __crossover_parents(self, parent_1: np.ndarray, parent_2: np.ndarray):
-        starting_cty = np.random.choice(self.gene_size, 1)[0]
-        child = np.full(self.gene_size, -1, dtype=GENE_DTYPE)
-        parent_1_starting_idx = np.where(parent_1 == starting_cty)[0][0]
-        parent_2_starting_idx = np.where(parent_2 == starting_cty)[0][0]
-        parent_1_reordered = np.concatenate(
-            (
-                parent_1[parent_1_starting_idx:],
-                parent_1[:parent_1_starting_idx],
-            ),
-            axis=0,
-        )
-        parent_2_reordered = np.concatenate(
-            (
-                parent_2[parent_2_starting_idx:],
-                parent_2[:parent_2_starting_idx],
-            ),
-            axis=0,
-        )
-
-        for i in np.arange(self.gene_size).tolist():
-            if (
-                parent_1_reordered[i] not in child
-                and parent_2_reordered[i] not in child
-            ):
-                child[i] = get_closest_destination(
-                    self.distances,
-                    child[i - 1],
-                    parent_1_reordered[i],
-                    parent_2_reordered[i],
-                )
-
-            elif (
-                parent_1_reordered[i] in child
-                and parent_2_reordered[i] in child
-            ):
-                not_in_child = get_destinations_not_in_route(
-                    self.gene_size, child
-                )
-                child[i] = get_closest_destination_from_available_routes(
-                    self.distances, child[i - 1], not_in_child
-                )
-
-            elif parent_1_reordered[i] in child:
-                child[i] = parent_2_reordered[i]
-            else:
-                child[i] = parent_1_reordered[i]
-
-        return child
-
-    def __mutate(self, individual: np.ndarray, mutation_rate: np.float16):
-        invidivual_mutation_rate = np.random.uniform(0, 1, 1)[0]
-        if invidivual_mutation_rate <= mutation_rate:
-            genes_to_mutate = np.random.choice(self.gene_size, 2, replace=False)
-            individual[[genes_to_mutate[0], genes_to_mutate[1]]] = individual[
-                [genes_to_mutate[1], genes_to_mutate[0]]
-            ]
-
     def run(self, verbose: bool = True):
-        self.__initialize_populations()
+        self.populations = _get_new_populations(
+            self.distances,
+            self.population_number,
+            self.population_size,
+            self.gene_size,
+            self.enhanced_individuals,
+        )
+        self.populations_mutation_rate = _get_populations_mutation_rates(
+            self.population_number,
+            self.uniform_population_mutation_rate,
+            self.max_mutation_rate,
+        )
+
         disable_tqdm = not verbose
         for generation in np.arange(self.generation_number).tolist():
-            fitness = self.__calculate_fitness()
+            fitness = _calculate_fitness(
+                self.distances,
+                self.populations,
+                self.population_number,
+                self.population_size,
+            )
             print(f"Shortest path gen {generation}: {np.min(fitness):,} meters")
             for i in tqdm(
                 np.arange(self.population_number).tolist(), disable=disable_tqdm
@@ -327,7 +178,219 @@ class TSP(object):
                 population = self.populations[i]
                 population_fitness = fitness[i]
                 mutation_rate = self.populations_mutation_rate[i]
-                fittest_individuals = self.__selection_on_population(
-                    population_fitness
+                fittest_individuals = _selection_on_population(
+                    population_fitness, self.selection_threshold
                 )
-                self.__crossover(population, mutation_rate, fittest_individuals)
+                _crossover(
+                    self.distances,
+                    population,
+                    self.population_size,
+                    mutation_rate,
+                    fittest_individuals,
+                )
+
+
+@jit(nopython=True, parallel=True)
+def _get_new_populations(
+    distance_matrix: np.ndarray,
+    population_number: int,
+    population_size: int,
+    gene_size: int,
+    enhanced_individuals: int,
+):
+    populations = np.full(
+        (population_number, population_size, gene_size),
+        -1,
+        dtype=GENE_DTYPE,
+    )
+    for i in prange(population_number):
+        populations[i] = _get_new_population(
+            distance_matrix, population_size, gene_size, enhanced_individuals
+        )
+
+    return populations
+
+
+@jit(nopython=True)
+def _get_new_population(
+    distance_matrix: np.ndarray,
+    population_size: int,
+    gene_size: int,
+    enhanced_individuals: int,
+):
+    population = np.full((population_size, gene_size), -1, dtype=GENE_DTYPE)
+    for i in range(population_size):
+        population[i] = np.random.choice(gene_size, gene_size, replace=False)
+
+    random_individuals = np.random.choice(
+        population_size, enhanced_individuals, replace=False
+    )
+    for i in range(enhanced_individuals):
+        population[random_individuals[i]] = get_a_fast_route(distance_matrix)
+
+    return population
+
+
+@jit(nopython=True)
+def _get_populations_mutation_rates(
+    population_number: int,
+    uniform_population_mutation_rate: bool,
+    max_mutation_rate: float,
+):
+    """
+    When 'uniform_population_mutation_rate' is True, same random mutation
+    rate is applied to all populations.
+
+    When 'uniform_population_mutation_rate' is False, each population
+    receives a random rate.
+
+    In both cases mutation rates are bound between 0 and max_mutation_rate
+    """
+
+    population_mutation_rates = np.full(population_number, 0, dtype=np.float32)
+    if uniform_population_mutation_rate:
+        population_mutation_rates = np.repeat(
+            np.random.uniform(0, max_mutation_rate, (1)),
+            population_number,
+        )
+    else:
+        population_mutation_rates = np.random.uniform(
+            0, max_mutation_rate, (population_number)
+        )
+
+    # allow adaptive mutation rates
+    return population_mutation_rates
+
+
+@jit(nopython=True)
+def _selection_on_population(
+    population_fitness: np.ndarray, max_selection_threshold: int
+):
+    """
+    Selection strategy used is based on fitness to allow maximum
+    parallelization. Roulette and tournament could be considered,
+    although it's expected to not perform as fast
+
+    """
+    return np.argsort(population_fitness)[:max_selection_threshold]
+
+
+@jit(nopython=True)
+def _calculate_population_fitness(
+    distance_matrix: np.ndarray, population: np.ndarray, population_size: int
+):
+    population_fitness = np.full(population_size, 0, dtype=DISTANCES_DTYPE)
+    for i in range(population_size):
+        population_fitness[i] = get_route_distance(
+            distance_matrix, population[i]
+        )
+
+    return population_fitness
+
+
+@jit(nopython=True, parallel=True)
+def _calculate_fitness(
+    distance_matrix: np.ndarray,
+    populations: np.ndarray,
+    population_number: int,
+    population_size: int,
+):
+    fitness = np.zeros(
+        (population_number, population_size),
+        dtype=DISTANCES_DTYPE,
+    )
+    for i in prange(population_number):
+        fitness[i] = _calculate_population_fitness(
+            distance_matrix, populations[i], population_size
+        )
+
+    return fitness
+
+
+@jit(nopython=True, parallel=True)
+def _crossover(
+    distance_matrix: np.ndarray,
+    popoulation: np.ndarray,
+    population_size: int,
+    mutation_rate: np.float32,
+    fittest_invidivuals: np.ndarray,
+):
+    for i in prange(population_size):
+        if i not in fittest_invidivuals:
+            parent_1, parent_2 = _get_crossover_parents(
+                popoulation, fittest_invidivuals
+            )
+            popoulation[i] = _crossover_parents(
+                distance_matrix, parent_1, parent_2
+            )
+            _mutate(popoulation[i], mutation_rate)
+
+
+@jit(nopython=True)
+def _get_crossover_parents(
+    popoulation: np.ndarray, fittest_invidivuals: np.ndarray
+):
+    parents = np.random.choice(fittest_invidivuals, 2, replace=False)
+    return popoulation[parents[0]], popoulation[parents[1]]
+
+
+@jit(nopython=True)
+def _crossover_parents(
+    distance_matrix: np.ndarray, parent_1: np.ndarray, parent_2: np.ndarray
+):
+    gene_size = parent_1.size
+    starting_cty = np.random.choice(gene_size, 1)[0]
+    child = np.full(gene_size, -1, dtype=GENE_DTYPE)
+    parent_1_starting_idx = np.where(parent_1 == starting_cty)[0][0]
+    parent_2_starting_idx = np.where(parent_2 == starting_cty)[0][0]
+    parent_1_reordered = np.concatenate(
+        (
+            parent_1[parent_1_starting_idx:],
+            parent_1[:parent_1_starting_idx],
+        ),
+        axis=0,
+    )
+    parent_2_reordered = np.concatenate(
+        (
+            parent_2[parent_2_starting_idx:],
+            parent_2[:parent_2_starting_idx],
+        ),
+        axis=0,
+    )
+
+    for i in range(gene_size):
+        if (
+            parent_1_reordered[i] not in child
+            and parent_2_reordered[i] not in child
+        ):
+            child[i] = get_closest_destination(
+                distance_matrix,
+                child[i - 1],
+                parent_1_reordered[i],
+                parent_2_reordered[i],
+            )
+
+        elif parent_1_reordered[i] in child and parent_2_reordered[i] in child:
+            not_in_child = get_destinations_not_in_route(gene_size, child)
+            child[i] = get_closest_destination_from_available_routes(
+                distance_matrix, child[i - 1], not_in_child
+            )
+
+        elif parent_1_reordered[i] in child:
+            child[i] = parent_2_reordered[i]
+        else:
+            child[i] = parent_1_reordered[i]
+
+    return child
+
+
+@jit(nopython=True)
+def _mutate(individual: np.ndarray, mutation_rate: np.float32):
+    invidivual_mutation_rate = np.random.uniform(0, 1, 1)[0]
+    if invidivual_mutation_rate <= mutation_rate:
+        genes_to_mutate = np.random.choice(individual.size, 2, replace=False)
+
+        individual[genes_to_mutate[0]], individual[genes_to_mutate[1]] = (
+            individual[genes_to_mutate[1]],
+            individual[genes_to_mutate[0]],
+        )
