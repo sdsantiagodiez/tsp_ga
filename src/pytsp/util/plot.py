@@ -32,9 +32,7 @@ class Mapplot(object):
 
         feature_group_name = "benchmark path"
         feature = FeatureGroup(feature_group_name)
-        rotation = Mapplot._get_degrees_approximation(
-            coordinates[0], coordinates[1]
-        )
+        rotation = Mapplot.__get_rotation_angle(coordinates[0], coordinates[1])
         RegularPolygonMarker(
             location=initial_location,
             fill_color="blue",
@@ -53,25 +51,14 @@ class Mapplot(object):
         return figure
 
     @staticmethod
-    def _get_degrees_approximation(coordinates_origin, coordinates_destination):
-        lat1 = math.radians(coordinates_origin[0])
-        lat2 = math.radians(coordinates_destination[0])
-
-        diffLong = math.radians(
+    def __get_rotation_angle(coordinates_origin, coordinates_destination):
+        dy = coordinates_destination[0] - coordinates_origin[0]
+        dx = math.cos(math.pi / 180 * coordinates_origin[0]) * (
             coordinates_destination[1] - coordinates_origin[1]
         )
+        ang = (math.atan2(dy, dx) / math.pi) * -180
 
-        x = math.sin(diffLong) * math.cos(lat2)
-        y = math.cos(lat1) * math.sin(lat2) - (
-            math.sin(lat1) * math.cos(lat2) * math.cos(diffLong)
-        )
-
-        initial_bearing = math.atan2(x, y)
-
-        initial_bearing = math.degrees(initial_bearing)
-        compass_bearing = (initial_bearing + 360) % 360
-
-        return compass_bearing
+        return round(ang, 2)
 
     @staticmethod
     def _get_bounds(coordinates: np.ndarray):
