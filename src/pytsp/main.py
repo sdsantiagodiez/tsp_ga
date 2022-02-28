@@ -1,9 +1,5 @@
-import sys
 import argparse
 from numpy import ndarray
-
-sys.path.append(".")  # until structured as package
-
 from util.data_generator import DataGenerator
 from calculate.base import TSP  # noqa F401
 from calculate.base_numba import TSP as TSP_numba  # noqa F401

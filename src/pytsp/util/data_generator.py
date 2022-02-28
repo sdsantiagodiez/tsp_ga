@@ -1,9 +1,6 @@
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-import sys
-
-sys.path.append(".")  # until structured as package
 from util.distances import get_distance
 
 DEFAULT_CITIES_DATA_PATH: str = "../../data/starbucks_us_locations.csv"
