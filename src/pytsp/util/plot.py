@@ -9,17 +9,30 @@ import math
 
 
 class Mapplot(object):
+    __DEFAULTS = {
+        "width": 400,
+        "height": 400,
+        "line_color": "red",
+        "line_weight": 2,
+        "line_name": "",
+        "directional_arrows": 4,
+        "directional_arrows_color": "blue",
+        "directional_arrows_radius": 5,
+    }
+
     @staticmethod
     def plot_map(
         coordinates: np.ndarray,
-        width: int = 400,
-        height: int = 400,
-        line_color: str = "blue",
-        line_weight: int = 2,
-        lines_name: str = "",
-        directional_arrows=4,
-        directional_arrows_fill_color="blue",
-        directional_arrows_radius=5,
+        width: int = __DEFAULTS["width"],
+        height: int = __DEFAULTS["height"],
+        line_color: str = __DEFAULTS["line_color"],
+        line_weight: int = __DEFAULTS["line_weight"],
+        line_name: str = __DEFAULTS["line_name"],
+        directional_arrows: int = __DEFAULTS["directional_arrows"],
+        directional_arrows_color: str = __DEFAULTS["directional_arrows_color"],
+        directional_arrows_radius: int = __DEFAULTS[
+            "directional_arrows_radius"
+        ],
     ):
         initial_location = tuple(coordinates[0])
 
@@ -34,7 +47,7 @@ class Mapplot(object):
         Mapplot._add_route_lines(
             map=map,
             coordinates=coordinates,
-            feature_group_name=lines_name,
+            feature_group_name=line_name,
             line_color=line_color,
             line_weight=line_weight,
         )
@@ -43,7 +56,7 @@ class Mapplot(object):
             map=map,
             coordinates=coordinates,
             number_between_each_location=directional_arrows,
-            fill_color=directional_arrows_fill_color,
+            color=directional_arrows_color,
             radius=directional_arrows_radius,
         )
 
@@ -52,12 +65,17 @@ class Mapplot(object):
         return Mapplot._get_figure(map=map, width=width, height=height)
 
     @staticmethod
+    def _add_coordinates(map: Map, coordinates: np.ndarray):
+        for i in range(len(coordinates)):
+            Marker(tuple(coordinates[i])).add_to(map)
+
+    @staticmethod
     def _add_route_lines(
         map: Map,
         coordinates: np.ndarray,
-        feature_group_name: str = "benchmark path",
-        line_color: str = "blue",
-        line_weight: int = 2,
+        feature_group_name: str = __DEFAULTS["line_name"],
+        line_color: str = __DEFAULTS["line_color"],
+        line_weight: int = __DEFAULTS["line_weight"],
     ):
         feature = FeatureGroup(feature_group_name)
         PolyLine(coordinates, color=line_color, weight=line_weight).add_to(
@@ -67,24 +85,12 @@ class Mapplot(object):
         feature.add_to(map)
 
     @staticmethod
-    def _add_coordinates(map: Map, coordinates: np.ndarray):
-        for i in range(len(coordinates)):
-            Marker(tuple(coordinates[i])).add_to(map)
-
-    @staticmethod
-    def _get_figure(map: Map, width: int, height: int):
-        figure = Figure(width=width, height=height)
-        figure.add_child(map)
-
-        return figure
-
-    @staticmethod
     def _add_directional_arrows(
         map: Map,
         coordinates: np.ndarray,
-        number_between_each_location: int = 4,
-        fill_color: str = "blue",
-        radius: int = 5,
+        number_between_each_location: int = __DEFAULTS["directional_arrows"],
+        color: str = __DEFAULTS["directional_arrows_color"],
+        radius: int = __DEFAULTS["directional_arrows_radius"],
     ):
         for i in range(len(coordinates) - 1):
             origin = coordinates[i]
@@ -97,7 +103,7 @@ class Mapplot(object):
                 Mapplot._add_arrow(
                     map=map,
                     location=mid_point,
-                    fill_color=fill_color,
+                    color=color,
                     radius=radius,
                     rotation=rotation,
                 )
@@ -106,14 +112,14 @@ class Mapplot(object):
     def _add_arrow(
         map: Map,
         location: tuple,
-        fill_color: str = "blue",
-        radius: int = 5,
+        color: str = __DEFAULTS["directional_arrows_color"],
+        radius: int = __DEFAULTS["directional_arrows_radius"],
         rotation: float = 0,
     ):
         number_of_sides = 3
         RegularPolygonMarker(
             location=location,
-            fill_color=fill_color,
+            color=color,
             number_of_sides=number_of_sides,
             radius=radius,
             rotation=rotation,
@@ -130,17 +136,6 @@ class Mapplot(object):
         ang = (math.atan2(dy, dx) / math.pi) * -180
 
         return round(ang, 2)
-
-    @staticmethod
-    def _get_bounds(coordinates: np.ndarray):
-        southests = coordinates.transpose()[0].min()
-        northests = coordinates.transpose()[0].max()
-        westests = coordinates.transpose()[1].min()
-        eastest = coordinates.transpose()[1].max()
-
-        sw = [southests, westests]
-        ne = [northests, eastest]
-        return [sw, ne]
 
     @staticmethod
     def _get_mid_point(
@@ -176,3 +171,25 @@ class Mapplot(object):
         y = coordinates_destination[1] - coordinates_origin[1]
 
         return math.sqrt(pow(x, 2) + pow(y, 2))
+
+    @staticmethod
+    def _get_bounds(coordinates: np.ndarray):
+        southests = coordinates.transpose()[0].min()
+        northests = coordinates.transpose()[0].max()
+        westests = coordinates.transpose()[1].min()
+        eastest = coordinates.transpose()[1].max()
+
+        sw = [southests, westests]
+        ne = [northests, eastest]
+        return [sw, ne]
+
+    @staticmethod
+    def _get_figure(
+        map: Map,
+        width: int = __DEFAULTS["width"],
+        height: int = __DEFAULTS["height"],
+    ):
+        figure = Figure(width=width, height=height)
+        figure.add_child(map)
+
+        return figure
