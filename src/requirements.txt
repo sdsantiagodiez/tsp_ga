@@ -1,6 +1,5 @@
-geopy==2.2.0
-numba==0.55.1
-numpy==1.21.5
-pandas==1.4.1
-setuptools==58.0.4
 tqdm==4.62.3
+numba==0.55.0
+numpy==1.21.5
+geopy==2.2.0
+pandas==1.4.1
