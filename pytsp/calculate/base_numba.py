@@ -150,9 +150,7 @@ class TSP(object):
         self.distances = distances
         self.gene_size = self.distances.shape[0]
 
-    def run(self, verbose: bool = True):
-        disable_tqdm = not verbose
-
+    def initialize_population(self):
         self.populations = _get_new_populations(
             self.distances,
             self.population_number,
@@ -167,25 +165,41 @@ class TSP(object):
             self.max_mutation_rate,
         )
 
-        fitness = _calculate_fitness(
+        self.fitness = _calculate_fitness(
             self.distances,
             self.populations,
             self.population_number,
             self.population_size,
         )
-        print(f"Baseline fitness: {np.min(fitness):,} meters")
+
+    def __get_fittest_path(self):
+        return self.populations[0][0]  # to be replaced
+
+    def run_generation(self, disable_tqdm: bool = False):
+        self.fitness = _run_generation(
+            self.distances,
+            self.populations,
+            self.fitness,
+            self.populations_mutation_rate,
+            self.population_number,
+            self.population_size,
+            self.selection_threshold,
+            disable_tqdm,
+        )
+        self.fittest = np.min(self.fitness)
+        self.fittest_path = self.__get_fittest_path()
+
+    def run(self, verbose: bool = True):
+        disable_tqdm = not verbose
+
+        self.initialize_population()
+
+        print(f"Baseline fitness: {np.min(self.fitness):,} meters")
         for generation in range(self.generation_number):
-            fitness = _run_generation(
-                self.distances,
-                self.populations,
-                fitness,
-                self.populations_mutation_rate,
-                self.population_number,
-                self.population_size,
-                self.selection_threshold,
-                disable_tqdm,
+            self.run_generation(disable_tqdm)
+            print(
+                f"Gen {generation+1} fitness: {np.min(self.fitness):,} meters"
             )
-            print(f"Gen {generation+1} fitness: {np.min(fitness):,} meters")
 
 
 def _run_generation(
@@ -198,7 +212,6 @@ def _run_generation(
     selection_threshold: int,
     disable_tqdm: bool,
 ):
-
     for i in tqdm(range(population_number), disable=disable_tqdm):
         fittest_individuals = _selection_on_population(
             populations_fitness[i], selection_threshold
