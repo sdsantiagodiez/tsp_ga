@@ -2,4 +2,4 @@ tqdm==4.62.3
 numba==0.55.0
 numpy==1.21.5
 geopy==2.2.0
-#pandas>1.4.1
+pandas>1.4.1
