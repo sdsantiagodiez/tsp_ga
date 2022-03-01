@@ -1,5 +1,4 @@
 streamlit==1.5.1
 numpy==1.21.5
 streamlit_folium==0.6.2
-pytsp==0.2.7
 -e git+https://github.com/sdsantiagodiez/tsp_ga#egg=pytsp
