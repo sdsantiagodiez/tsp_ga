@@ -28,7 +28,6 @@ class Page1(Page):
             min_value=5,
             max_value=1000,
             step=1,
-            key=1,
         )
         self.state.client_config["num_cities"] = number_of_stores
 
@@ -38,7 +37,6 @@ class Page1(Page):
             min_value=5,
             max_value=1000,
             step=1,
-            key=2,
         )
         self.state.client_config["seed_cities"] = seed_cities
 
@@ -48,7 +46,6 @@ class Page1(Page):
             min_value=5,
             max_value=1000,
             step=1,
-            key=2,
         )
         self.state.client_config["population_number"] = population_number
 
