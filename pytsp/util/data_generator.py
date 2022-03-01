@@ -11,7 +11,7 @@ DEFAULT_NUM_CITIES: int = 10
 DEFAULT_ALLOW_REPEATING_CITIES: bool = False
 DEFAULT_VERBOSE: bool = True
 DEFAULT_CITIES_DATA_PATH: str = resource_stream(
-    __name__, "data/starbucks_us_locations.csv"
+    "pytsp", "data/starbucks_us_locations.csv"
 )
 
 
