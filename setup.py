@@ -36,5 +36,5 @@ setup(
     package_dir={"pytsp": "pytsp"},
     package_data={"pytsp": ["data/*.csv"]},
     packages=find_packages(exclude=["tests", "app"]),
-    python_requires=">=3.8",
+    python_requires=">=3.7",
 )
