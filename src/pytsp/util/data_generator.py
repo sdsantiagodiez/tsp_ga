@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-from distances import get_distance
+
+from pytsp.util.distances import get_distance
 
 DEFAULT_CITIES_DATA_PATH: str = "../../data/starbucks_us_locations.csv"
 DEFAULT_SEED: int = 42

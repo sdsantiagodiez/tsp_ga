@@ -1,12 +1,6 @@
 import streamlit as st
 import numpy as np
-import sys
 from ..utils import Page
-
-# temporary
-sys.path.append("/Users/sdiez004/source/repos_personal/tsp_ga/src/pytsp/")
-sys.path.append("/Users/sdiez004/source/repos_personal/tsp_ga/src/")
-
 from pytsp.main import run
 
 

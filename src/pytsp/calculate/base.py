@@ -1,12 +1,13 @@
-from util.distances import (
+import numpy as np
+from tqdm import tqdm
+
+from pytsp.util.distances import (
     get_a_fast_route,
     get_route_distance,
     get_destinations_not_in_route,
     get_closest_destination,
     get_closest_destination_from_available_routes,
 )
-import numpy as np
-from tqdm import tqdm
 
 GENE_DTYPE: type = np.int16
 DISTANCES_DTYPE: type = np.int64

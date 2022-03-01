@@ -1,9 +1,9 @@
 import argparse
 from numpy import ndarray
-from util.data_generator import DataGenerator
-from calculate.base import TSP  # noqa F401
-from calculate.base_numba import TSP as TSP_numba  # noqa F401
-from util.distances import get_a_fast_route_and_distance
+from pytsp.util.data_generator import DataGenerator
+from pytsp.util.distances import get_a_fast_route_and_distance
+from pytsp.calculate.base import TSP  # noqa F401
+from pytsp.calculate.base_numba import TSP as TSP_numba  # noqa F401
 
 __DEFAULT_VALUES = {
     "num-cities": 10,

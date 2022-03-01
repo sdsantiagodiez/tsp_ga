@@ -1,10 +1,6 @@
 import streamlit as st
 from streamlit_folium import folium_static
 from ..utils import Page
-import sys
-
-# temporary
-sys.path.append("/Users/sdiez004/source/repos_personal/tsp_ga/src/pytsp/")
 from pytsp.util.plot import Mapplot
 
 
