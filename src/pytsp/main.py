@@ -1,13 +1,9 @@
-import sys
 import argparse
 from numpy import ndarray
-
-sys.path.append(".")  # until structured as package
-
-from util.data_generator import DataGenerator
-from calculate.base import TSP  # noqa F401
-from calculate.base_numba import TSP as TSP_numba  # noqa F401
-from util.distances import get_a_fast_route_and_distance
+from pytsp.util.data_generator import DataGenerator
+from pytsp.util.distances import get_a_fast_route_and_distance
+from pytsp.calculate.base import TSP  # noqa F401
+from pytsp.calculate.base_numba import TSP as TSP_numba  # noqa F401
 
 __DEFAULT_VALUES = {
     "num-cities": 10,
@@ -25,7 +21,33 @@ __DEFAULT_VALUES = {
 }
 
 
-def main(
+def run(
+    num_cities: int = __DEFAULT_VALUES["num-cities"],
+    seed_cities: int = __DEFAULT_VALUES["seed-cities"],
+    allow_repeating_cities: bool = __DEFAULT_VALUES["allow-repeating-cities"],
+    generation_number: int = __DEFAULT_VALUES["generation-number"],
+    population_number: int = __DEFAULT_VALUES["population-number"],
+    population_size: int = __DEFAULT_VALUES["population-size"],
+    max_mutation_rate: float = __DEFAULT_VALUES["max-mutation-rate"],
+    uniform_population_mutation_rate: bool = __DEFAULT_VALUES[
+        "uniform-population-mutation-rate"
+    ],
+    selection_threshold: int = __DEFAULT_VALUES["selection-threshold"],
+    enhanced_individuals: int = __DEFAULT_VALUES["enhanced-individuals"],
+    compute: str = __DEFAULT_VALUES["compute"],
+    verbose: bool = __DEFAULT_VALUES["verbose"],
+):
+    city_data = DataGenerator(
+        num_cities=num_cities,
+        seed=seed_cities,
+        allow_repeating_cities=allow_repeating_cities,
+        verbose=verbose,
+    )
+
+    return city_data
+
+
+def _cli(
     num_cities: int,
     seed_cities: int,
     allow_repeating_cities: bool,
@@ -201,7 +223,7 @@ def _get_args():
 
 if __name__ == "__main__":
     args = _get_args()
-    main(
+    _cli(
         num_cities=args.num_cities,
         seed_cities=args.seed_cities,
         allow_repeating_cities=args.allow_repeating_cities,
