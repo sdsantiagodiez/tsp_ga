@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from importlib.resources import path
+from pkg_resources import resource_stream
 from tqdm import tqdm
 
 from pytsp.util.distances import get_distance
@@ -10,8 +10,9 @@ DEFAULT_SEED: int = 42
 DEFAULT_NUM_CITIES: int = 10
 DEFAULT_ALLOW_REPEATING_CITIES: bool = False
 DEFAULT_VERBOSE: bool = True
-with path("pytsp.data", "starbucks_us_locations.csv") as file:
-    DEFAULT_CITIES_DATA_PATH: str = file
+DEFAULT_CITIES_DATA_PATH: str = resource_stream(
+    __name__, "data/starbucks_us_locations.csv"
+)
 
 
 class DataGenerator(object):
