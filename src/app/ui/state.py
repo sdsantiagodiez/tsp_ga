@@ -89,7 +89,30 @@ def get_state(hash_funcs=None):
 
 # Only used for separating namespace,
 # everything can be saved at state variable as well.
-CONFIG_DEFAULTS: Dict[str, Any] = {"slider_value": 0}
+CONFIG_DEFAULTS: Dict[str, Any] = {
+    "num_cities": 10,
+    "seed_cities": 42,
+    "allow_repeating_cities": False,
+    "generation_number": 10,
+    "population_number": 20,
+    "population_size": 20,
+    "max_mutation_rate": 0.35,
+    "uniform_population_mutation_rate": False,
+    "selection_threshold": 0,
+    "enhanced_individuals": 0,
+    "compute": "numba",
+    "verbose": True,
+    "route": [],
+    "selected_cities": None,
+    "width": 500,
+    "height": 500,
+    "line_color": "#E21919",
+    "line_weight": 2,
+    "line_name": "line name",
+    "directional_arrows": 2,
+    "directional_arrows_color": "#1927E2",
+    "directional_arrows_radius": 5,
+}
 
 
 def provide_state(hash_funcs=None):

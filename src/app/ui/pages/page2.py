@@ -7,6 +7,4 @@ class Page2(Page):
         self.state = state
 
     def write(self):
-        st.title("Map routes")
-
-        st.write(self.state.client_config["slider_value"])
+        st.write("workg in progress")

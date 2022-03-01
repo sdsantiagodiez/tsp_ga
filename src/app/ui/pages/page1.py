@@ -1,5 +1,13 @@
 import streamlit as st
+import numpy as np
+import sys
 from ..utils import Page
+
+# temporary
+sys.path.append("/Users/sdiez004/source/repos_personal/tsp_ga/src/pytsp/")
+sys.path.append("/Users/sdiez004/source/repos_personal/tsp_ga/src/")
+
+from pytsp.main import run
 
 
 class Page1(Page):
@@ -7,9 +15,59 @@ class Page1(Page):
         self.state = state
 
     def write(self):
-        st.title("Travelling Salesman Problem")
-        slider_value = st.slider(
-            "Set Value from here See it on Page 2",
-            value=self.state.client_config["slider_value"],
+        self.__build_static_content()
+        self.build_inputs()
+
+    def __build_static_content(self):
+        st.title("The Coffee Road")
+
+    def build_inputs(self):
+        number_of_stores = st.sidebar.slider(
+            "Select number of Starbucks stores to visit",
+            value=self.state.client_config["num_cities"],
+            min_value=5,
+            max_value=1000,
+            step=1,
+            key=1,
         )
-        self.state.client_config["slider_value"] = slider_value
+        self.state.client_config["num_cities"] = number_of_stores
+
+        seed_cities = st.sidebar.slider(
+            "Select seed for random city selection",
+            value=self.state.client_config["seed_cities"],
+            min_value=5,
+            max_value=1000,
+            step=1,
+            key=2,
+        )
+        self.state.client_config["seed_cities"] = seed_cities
+
+        population_number = st.sidebar.slider(
+            "Select number of individuals per population",
+            value=self.state.client_config["population_number"],
+            min_value=5,
+            max_value=1000,
+            step=1,
+            key=2,
+        )
+        self.state.client_config["population_number"] = population_number
+
+        self.__add_calculate_button()
+
+    def __add_calculate_button(self):
+        if st.sidebar.button("Calculate"):
+            self.__run_button()
+        else:
+            pass
+
+    def __run_button(self):
+        with st.spinner("Calculating distances..."):
+            city_data = run(seed_cities=self.state.client_config["seed_cities"])
+        st.success("Done!")
+        selected_starbucks_stores = city_data.selected_cities
+        self.state.client_config["selected_cities"] = selected_starbucks_stores
+        self.state.client_config["route"] = np.array(
+            [k for k in selected_starbucks_stores["coordinates"]]
+            + [selected_starbucks_stores["coordinates"][0]]
+        )
+        st.dataframe(self.state.client_config["selected_cities"])
