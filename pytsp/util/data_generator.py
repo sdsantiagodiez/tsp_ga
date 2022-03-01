@@ -1,10 +1,11 @@
 import pandas as pd
 import numpy as np
+from importlib.resources import path
 from tqdm import tqdm
 
 from pytsp.util.distances import get_distance
 
-DEFAULT_CITIES_DATA_PATH: str = "../../data/starbucks_us_locations.csv"
+DEFAULT_CITIES_DATA_PATH: str = path("pytsp.data", "starbucks_us_locations.csv")
 DEFAULT_SEED: int = 42
 DEFAULT_NUM_CITIES: int = 10
 DEFAULT_ALLOW_REPEATING_CITIES: bool = False
