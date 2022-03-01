@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from pkg_resources import resource_stream
 from tqdm import tqdm
+from io import BytesIO
 
 from pytsp.util.distances import get_distance
 
@@ -10,9 +11,6 @@ DEFAULT_SEED: int = 42
 DEFAULT_NUM_CITIES: int = 10
 DEFAULT_ALLOW_REPEATING_CITIES: bool = False
 DEFAULT_VERBOSE: bool = True
-DEFAULT_CITIES_DATA_PATH: str = resource_stream(
-    "pytsp", "data/starbucks_us_locations.csv"
-)
 
 
 class DataGenerator(object):
@@ -23,10 +21,9 @@ class DataGenerator(object):
         num_cities: int = DEFAULT_NUM_CITIES,
         seed: int = DEFAULT_SEED,
         allow_repeating_cities: bool = DEFAULT_ALLOW_REPEATING_CITIES,
-        cities_data_path: str = DEFAULT_CITIES_DATA_PATH,
         verbose: bool = DEFAULT_VERBOSE,
     ):
-        self.all_cities = self.__get_all_cities(cities_data_path)
+        self.all_cities = self.__get_all_cities()
         self.__set_num_cities(num_cities)
         self.generate_new_cities_selection(
             num_cities, seed, allow_repeating_cities, verbose
@@ -53,12 +50,15 @@ class DataGenerator(object):
     def distances(self):
         return self._distances
 
-    def __get_all_cities(
-        self, cities_data_path: str = DEFAULT_CITIES_DATA_PATH
-    ):
+    def __get_all_cities(self):
+        starbucks_data = BytesIO(
+            resource_stream("pytsp", "data/starbucks_us_locations.csv").read()
+        )
         columns = ["longitude", "latitude", "id", "address"]
-        cities = pd.read_csv(cities_data_path, names=columns, header=None)
+        cities = pd.read_csv(starbucks_data, names=columns, header=None)
         cities.dropna(inplace=True)
+        print(cities.columns)
+        print(len(cities))
         cities[["state", "city"]] = cities.id.str.split("-", expand=True)[
             [1, 2]
         ]

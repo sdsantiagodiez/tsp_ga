@@ -18,7 +18,7 @@ with open("requirements.txt", encoding="utf-8") as f:
 
 setup(
     name="pytsp",
-    version="0.3.0",
+    version="0.3.1",
     author="Santiago Diez",
     author_email="sdsantiagodiez@gmail.com",
     description="Genetic algorithm implementation of \n"
