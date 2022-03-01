@@ -1,0 +1,1 @@
+-e git+https://github.com/sdsantiagodiez/tsp_ga#egg=pytsp&subdirectory=src/pytsp
