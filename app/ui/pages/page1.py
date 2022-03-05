@@ -10,6 +10,9 @@ class Page1(Page):
     def write(self):
         self.__build_static_content()
         self.build_inputs()
+        if self.state.client_config["selected_cities"] is not None:
+            st.success("Done!")
+            st.dataframe(self.state.client_config["selected_cities"])
 
     def __build_static_content(self):
         st.title("Coffe Road Trip")
@@ -60,5 +63,3 @@ class Page1(Page):
                 "selected_cities"
             ] = selected_starbucks_stores
             self.state.client_config["distance_matrix"] = city_data.distances
-        st.success("Done!")
-        st.dataframe(self.state.client_config["selected_cities"])
