@@ -68,7 +68,7 @@ def _cli(
 
     _get_benchmark(distance_matrix)
 
-    _compute(
+    best_route = _compute(
         distance_matrix,
         generation_number,
         population_number,
@@ -80,6 +80,7 @@ def _cli(
         compute,
         verbose,
     )
+    print(f"Best route: {best_route}")
 
 
 def _get_distance_matrix(
@@ -134,7 +135,7 @@ def _compute(
         compute=compute,
     )
 
-    routing.run(verbose=verbose)
+    return routing.run(verbose=verbose)
 
 
 def _get_args():

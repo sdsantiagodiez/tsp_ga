@@ -89,6 +89,18 @@ class NumbaCompute(Compute):
             population_size,
         )
 
+    @staticmethod
+    def get_fittest(
+        fitness: np.ndarray,
+        populations: np.ndarray,
+        population_number: int,
+        population_size: int,
+    ):
+        """Returns fittest route and distance"""
+        return _get_fittest(
+            fitness, populations, population_number, population_size
+        )
+
 
 def _run_generation(
     distance_matrix: np.ndarray,
@@ -235,6 +247,22 @@ def _calculate_fitness(
         )
 
     return fitness
+
+
+@jit(nopython=True, cache=_NUMBA_CACHE)
+def _get_fittest(
+    fitness: np.ndarray,
+    populations: np.ndarray,
+    population_number: int,
+    population_size: int,
+):
+    fittest_index: np.int64 = np.argmin(fitness)
+    return (
+        fitness.flatten()[fittest_index],
+        populations.reshape(population_size * population_number, -1)[
+            fittest_index
+        ],
+    )
 
 
 @jit(nopython=True, parallel=True, cache=_NUMBA_CACHE)

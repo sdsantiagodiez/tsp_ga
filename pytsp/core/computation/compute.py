@@ -54,3 +54,14 @@ class Compute(ABC):
     ):
         """Calculates fitness defined by distance"""
         raise NotImplementedError
+
+    @staticmethod
+    @abstractmethod
+    def get_fittest(
+        fitness: ndarray,
+        populations: ndarray,
+        population_number: int,
+        population_size: int,
+    ):
+        """Calculates fitness defined by distance"""
+        raise NotImplementedError
