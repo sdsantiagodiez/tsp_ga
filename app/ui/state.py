@@ -92,7 +92,7 @@ def get_state(hash_funcs=None):
 CONFIG_DEFAULTS: Dict[str, Any] = {
     "num_cities": 10,
     "seed_cities": 42,
-    "allow_repeating_cities": False,
+    "allow_repeating_cities": True,
     "generation_number": 10,
     "population_number": 20,
     "population_size": 20,
@@ -102,7 +102,7 @@ CONFIG_DEFAULTS: Dict[str, Any] = {
     "enhanced_individuals": 0,
     "compute": "numba",
     "verbose": True,
-    "route": [],
+    "distance_matrix": [],
     "selected_cities": None,
     "width": 500,
     "height": 500,

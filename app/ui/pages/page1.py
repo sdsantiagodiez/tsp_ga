@@ -1,7 +1,6 @@
 import streamlit as st
-import numpy as np
 from ..utils import Page
-from pytsp.main import run
+from pytsp import DataGenerator
 
 
 class Page1(Page):
@@ -13,7 +12,7 @@ class Page1(Page):
         self.build_inputs()
 
     def __build_static_content(self):
-        st.title("The Coffee Road")
+        st.title("Coffe Road Trip")
 
     def build_inputs(self):
         number_of_stores = st.sidebar.slider(
@@ -34,31 +33,32 @@ class Page1(Page):
         )
         self.state.client_config["seed_cities"] = seed_cities
 
-        population_number = st.sidebar.slider(
-            "Select number of individuals per population",
-            value=self.state.client_config["population_number"],
-            min_value=5,
-            max_value=1000,
-            step=1,
+        allow_repeating_cities = st.sidebar.checkbox(
+            "Allow multiple stores in the same citiy",
+            value=self.state.client_config["allow_repeating_cities"],
         )
-        self.state.client_config["population_number"] = population_number
+        self.state.client_config["population_number"] = allow_repeating_cities
 
-        self.__add_calculate_button()
+        self.__add_generate_button()
 
-    def __add_calculate_button(self):
-        if st.sidebar.button("Calculate"):
+    def __add_generate_button(self):
+        if st.sidebar.button("Generate stores"):
             self.__run_button()
-        else:
-            pass
 
     def __run_button(self):
-        with st.spinner("Calculating distances..."):
-            city_data = run(seed_cities=self.state.client_config["seed_cities"])
+        with st.spinner("Randomly selecting stores to visit..."):
+            city_data = DataGenerator(
+                num_cities=self.state.client_config["num_cities"],
+                seed=self.state.client_config["seed_cities"],
+                allow_repeating_cities=self.state.client_config[
+                    "allow_repeating_cities"
+                ],
+            )
+            selected_starbucks_stores = city_data.selected_cities
+
+            self.state.client_config[
+                "selected_cities"
+            ] = selected_starbucks_stores
+            self.state.client_config["distance_matrix"] = city_data.distances
         st.success("Done!")
-        selected_starbucks_stores = city_data.selected_cities
-        self.state.client_config["selected_cities"] = selected_starbucks_stores
-        self.state.client_config["route"] = np.array(
-            [k for k in selected_starbucks_stores["coordinates"]]
-            + [selected_starbucks_stores["coordinates"][0]]
-        )
         st.dataframe(self.state.client_config["selected_cities"])
