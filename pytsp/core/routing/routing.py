@@ -166,9 +166,15 @@ class Routing(object):
             self.population_number,
             self.population_size,
         )
+        self.__update_fittest()
 
-    def __get_fittest_path(self):
-        return self.populations[0][0]  # to be replaced
+    def __update_fittest(self):
+        self.fittest, self.fittest_individual = self.compute.get_fittest(
+            self.fitness,
+            self.populations,
+            self.population_number,
+            self.population_size,
+        )
 
     def run_generation(self, disable_tqdm: bool = False):
         self.fitness = self.compute.run_generation(
@@ -181,17 +187,15 @@ class Routing(object):
             self.selection_threshold,
             disable_tqdm,
         )
-        self.fittest = np.min(self.fitness)
-        self.fittest_path = self.__get_fittest_path()
+        self.__update_fittest()
 
     def run(self, verbose: bool = True):
         disable_tqdm = not verbose
 
         self.initialize_population()
 
-        print(f"Baseline fitness: {np.min(self.fitness):,} meters")
+        print(f"Baseline fitness: {self.fittest:,} meters")
         for generation in range(self.generation_number):
             self.run_generation(disable_tqdm)
-            print(
-                f"Gen {generation+1} fitness: {np.min(self.fitness):,} meters"
-            )
+            print(f"Gen {generation+1} fitness: {self.fittest:,} meters")
+        return self.fittest_individual
