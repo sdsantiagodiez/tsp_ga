@@ -3,21 +3,23 @@ from ..utils import Page
 from pytsp import DataGenerator
 
 
-class Page1(Page):
+class StoreSelection(Page):
     def __init__(self, state):
         self.state = state
 
     def write(self):
         self.__build_static_content()
-        self.build_inputs()
-        if self.state.client_config["selected_cities"] is not None:
-            st.success("Done!")
-            st.dataframe(self.state.client_config["selected_cities"])
+        self.__build_inputs()
+        self.__build_outputs()
 
     def __build_static_content(self):
         st.title("Coffe Road Trip")
+        st.caption(
+            "Play around with the parameters on the left to randomly \
+                select Starbuck's stores across the US"
+        )
 
-    def build_inputs(self):
+    def __build_inputs(self):
         number_of_stores = st.sidebar.slider(
             "Select number of Starbucks stores to visit",
             value=self.state.client_config["num_cities"],
@@ -37,7 +39,7 @@ class Page1(Page):
         self.state.client_config["seed_cities"] = seed_cities
 
         allow_repeating_cities = st.sidebar.checkbox(
-            "Allow multiple stores in the same citiy",
+            "Allow selecting multiple stores in the same citiy",
             value=self.state.client_config["allow_repeating_cities"],
         )
         self.state.client_config["population_number"] = allow_repeating_cities
@@ -63,3 +65,8 @@ class Page1(Page):
                 "selected_cities"
             ] = selected_starbucks_stores
             self.state.client_config["distance_matrix"] = city_data.distances
+
+    def __build_outputs(self):
+        if self.state.client_config["selected_cities"] is not None:
+            st.success("Done!")
+            st.dataframe(self.state.client_config["selected_cities"])
