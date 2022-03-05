@@ -14,6 +14,7 @@ from pytsp.util.distances import (
 
 GENE_DTYPE: type = np.int16
 DISTANCES_DTYPE: type = np.int64
+_NUMBA_CACHE: bool = True
 
 
 class NumbaCompute(Compute):
@@ -119,7 +120,7 @@ def _run_generation(
     )
 
 
-@jit(nopython=True, parallel=True)
+@jit(nopython=True, parallel=True, cache=_NUMBA_CACHE)
 def _get_new_populations(
     distance_matrix: np.ndarray,
     population_number: int,
@@ -140,7 +141,7 @@ def _get_new_populations(
     return populations
 
 
-@jit(nopython=True)
+@jit(nopython=True, cache=_NUMBA_CACHE)
 def _get_new_population(
     distance_matrix: np.ndarray,
     population_size: int,
@@ -160,7 +161,7 @@ def _get_new_population(
     return population
 
 
-@jit(nopython=True)
+@jit(nopython=True, cache=_NUMBA_CACHE)
 def _get_populations_mutation_rates(
     population_number: int,
     uniform_population_mutation_rate: bool,
@@ -191,7 +192,7 @@ def _get_populations_mutation_rates(
     return population_mutation_rates
 
 
-@jit(nopython=True)
+@jit(nopython=True, cache=_NUMBA_CACHE)
 def _selection_on_population(
     population_fitness: np.ndarray, max_selection_threshold: int
 ):
@@ -204,7 +205,7 @@ def _selection_on_population(
     return np.argsort(population_fitness)[:max_selection_threshold]
 
 
-@jit(nopython=True)
+@jit(nopython=True, cache=_NUMBA_CACHE)
 def _calculate_population_fitness(
     distance_matrix: np.ndarray, population: np.ndarray, population_size: int
 ):
@@ -217,7 +218,7 @@ def _calculate_population_fitness(
     return population_fitness
 
 
-@jit(nopython=True, parallel=True)
+@jit(nopython=True, parallel=True, cache=_NUMBA_CACHE)
 def _calculate_fitness(
     distance_matrix: np.ndarray,
     populations: np.ndarray,
@@ -236,7 +237,7 @@ def _calculate_fitness(
     return fitness
 
 
-@jit(nopython=True, parallel=True)
+@jit(nopython=True, parallel=True, cache=_NUMBA_CACHE)
 def _crossover(
     distance_matrix: np.ndarray,
     popoulation: np.ndarray,
@@ -255,7 +256,7 @@ def _crossover(
             _mutate(popoulation[i], mutation_rate)
 
 
-@jit(nopython=True)
+@jit(nopython=True, cache=_NUMBA_CACHE)
 def _get_crossover_parents(
     popoulation: np.ndarray, fittest_invidivuals: np.ndarray
 ):
@@ -263,7 +264,7 @@ def _get_crossover_parents(
     return popoulation[parents[0]], popoulation[parents[1]]
 
 
-@jit(nopython=True)
+@jit(nopython=True, cache=_NUMBA_CACHE)
 def _crossover_parents(
     distance_matrix: np.ndarray, parent_1: np.ndarray, parent_2: np.ndarray
 ):
@@ -313,7 +314,7 @@ def _crossover_parents(
     return child
 
 
-@jit(nopython=True)
+@jit(nopython=True, cache=_NUMBA_CACHE)
 def _mutate(individual: np.ndarray, mutation_rate: np.float32):
     invidivual_mutation_rate = np.random.uniform(0, 1, 1)[0]
     if invidivual_mutation_rate <= mutation_rate:
