@@ -104,6 +104,7 @@ CONFIG_DEFAULTS: Dict[str, Any] = {
     "verbose": True,
     "distance_matrix": [],
     "selected_cities": None,
+    "selected_cities_coordinates": None,
     "width": 500,
     "height": 500,
     "line_color": "#E21919",
@@ -112,6 +113,10 @@ CONFIG_DEFAULTS: Dict[str, Any] = {
     "directional_arrows": 2,
     "directional_arrows_color": "#1927E2",
     "directional_arrows_radius": 5,
+    "route": None,
+    "route_coordinates": None,
+    "route_distance": None,
+    "map_plotted": False,
 }
 
 

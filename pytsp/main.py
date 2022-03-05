@@ -109,7 +109,8 @@ def _compute(
         compute=compute,
     )
 
-    return routing.run(verbose=verbose)
+    routing.run(verbose=verbose)
+    return routing.fittest_individual
 
 
 def _get_args():

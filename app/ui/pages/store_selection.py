@@ -59,11 +59,12 @@ class StoreSelection(Page):
                     "allow_repeating_cities"
                 ],
             )
-            selected_starbucks_stores = city_data.selected_cities
-
             self.state.client_config[
                 "selected_cities"
-            ] = selected_starbucks_stores
+            ] = city_data.selected_cities
+            self.state.client_config[
+                "selected_cities_coordinates"
+            ] = city_data.selected_cities["coordinates"]
             self.state.client_config["distance_matrix"] = city_data.distances
 
     def __build_outputs(self):
