@@ -1,9 +1,9 @@
 import argparse
 from numpy import ndarray
-from pytsp.util.data_generator import DataGenerator
+
+from pytsp import DataGenerator
+from pytsp import Routing
 from pytsp.util.distances import get_a_fast_route_and_distance
-from pytsp.calculate.base import TSP  # noqa F401
-from pytsp.calculate.base_numba import TSP as TSP_numba  # noqa F401
 
 __DEFAULT_VALUES = {
     "num-cities": 10,
@@ -122,12 +122,7 @@ def _compute(
 ):
     print(f"Initializing genetic algorithm with {compute} implementation...")
 
-    if compute == "numba":
-        compute_base = TSP_numba
-    else:
-        compute_base = TSP
-
-    tsp = compute_base(
+    routing = Routing(
         distance_matrix,
         generation_number=generation_number,
         population_number=population_number,
@@ -136,9 +131,10 @@ def _compute(
         uniform_population_mutation_rate=uniform_population_mutation_rate,
         selection_threshold=selection_threshold,
         enhanced_individuals=enhanced_individuals,
+        compute=compute,
     )
 
-    tsp.run(verbose=verbose)
+    routing.run(verbose=verbose)
 
 
 def _get_args():

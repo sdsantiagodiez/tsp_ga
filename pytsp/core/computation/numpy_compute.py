@@ -1,8 +1,7 @@
 import numpy as np
 from tqdm import tqdm
-from numba import jit
-from numba import prange
 
+from .compute import Compute
 from pytsp.util.distances import (
     get_a_fast_route,
     get_route_distance,
@@ -15,191 +14,77 @@ GENE_DTYPE: type = np.int16
 DISTANCES_DTYPE: type = np.int64
 
 
-class TSP(object):
-    __MIN_POPULATION_SIZE: int = 5
-    __MIN_POPULATION_NUMBER: int = 1
-    __MIN_GENERATION_NUMBER: int = 5
-    __MIN_SELECTION_THRESHOLD: int = 2
-    __MAX_SELECTION_THRESHOLD: int
-    __MAX_ENHANCED_INDIVIDUALS: int
+class NumpyCompute(Compute):
+    def __init__(self) -> None:
+        pass
 
-    def __init__(
-        self,
-        distances: np.ndarray,
-        generation_number: int = 10,
-        population_number: int = 5,
-        population_size: int = 10,
-        max_mutation_rate: float = 0.35,
-        uniform_population_mutation_rate: bool = False,
-        selection_threshold: int = 0,
-        enhanced_individuals: int = 0,
+    @staticmethod
+    def run_generation(
+        distance_matrix: np.ndarray,
+        populations: np.ndarray,
+        populations_fitness: np.ndarray,
+        populations_mutation_rate: np.ndarray,
+        population_number: int,
+        population_size: int,
+        selection_threshold: int,
+        disable_tqdm: bool,
     ):
-        self.__initialize_distances(distances)
-        self.generation_number = generation_number
-        self.population_number = population_number
-        self.population_size = population_size
-        self.max_mutation_rate = max_mutation_rate
-        self.uniform_population_mutation_rate = uniform_population_mutation_rate
-        self.__MAX_SELECTION_THRESHOLD = self.population_size // 2
-        self.__MAX_ENHANCED_INDIVIDUALS = self.population_size
-        self.selection_threshold = (
-            self.__MAX_SELECTION_THRESHOLD
-            if not selection_threshold
-            else selection_threshold
-        )
-        self.enhanced_individuals = enhanced_individuals
-
-    @property
-    def generation_number(self):
-        return self._generation_number
-
-    @generation_number.setter
-    def generation_number(self, value: int):
-        if value < self.__MIN_GENERATION_NUMBER:
-            value_error_message = "Generation number can't be less than"
-            raise ValueError(
-                f"{value_error_message} {self.__MIN_GENERATION_NUMBER}"
-            )
-        self._generation_number = value
-
-    @property
-    def population_number(self):
-        return self._population_number
-
-    @population_number.setter
-    def population_number(self, value: int):
-        if value < self.__MIN_POPULATION_NUMBER:
-            value_error_message = "Population number can't be less than"
-            raise ValueError(
-                f"{value_error_message} {self.__MIN_POPULATION_NUMBER}"
-            )
-        self._population_number = value
-
-    @property
-    def population_size(self):
-        return self._population_size
-
-    @population_size.setter
-    def population_size(self, value: int):
-        if value < self.__MIN_POPULATION_SIZE:
-            value_error_message = "Population size can't be less than"
-            raise ValueError(
-                f"{value_error_message} {self.__MIN_POPULATION_SIZE}"
-            )
-        self._population_size = value
-
-    @property
-    def max_mutation_rate(self):
-        return self._max_mutation_rate
-
-    @max_mutation_rate.setter
-    def max_mutation_rate(self, value: float):
-        if not (0 <= value <= 1):
-            raise ValueError(
-                "Max mutation rate should be a float between 0 and 1"
-            )
-        self._max_mutation_rate = value
-
-    @property
-    def selection_threshold(self):
-        return self._selection_threshold
-
-    @selection_threshold.setter
-    def selection_threshold(self, value: float):
-        if not (
-            self.__MIN_SELECTION_THRESHOLD
-            <= value
-            <= self.__MAX_SELECTION_THRESHOLD
-        ):
-            value_error_message = "Selection threshold can't be between "
-            raise ValueError(
-                f"{value_error_message} {self.__MIN_SELECTION_THRESHOLD} \n"
-                f"and {self.__MAX_SELECTION_THRESHOLD}"
-            )
-        self._selection_threshold = value
-
-    @property
-    def distances(self):
-        return self._distances
-
-    @distances.setter
-    def distances(self, value: np.ndarray):
-        value_shape = value.shape
-        if len(value_shape) != 2 or value_shape[0] != value_shape[1]:
-            raise ValueError(
-                "2d with (N,N) shape matrix expected was not satisfied in \n"
-                " the distance matrix"
-            )
-
-        self._distances = value
-
-    @property
-    def enhanced_individuals(self):
-        return self._enhanced_individuals
-
-    @enhanced_individuals.setter
-    def enhanced_individuals(self, value: float):
-        if not (0 <= value <= self.__MAX_ENHANCED_INDIVIDUALS):
-            value_error_message = "Enhanced individuals should be between "
-            raise ValueError(
-                f"{value_error_message} 0 and {self.__MAX_SELECTION_THRESHOLD}"
-            )
-        self._enhanced_individuals = value
-
-    def __initialize_distances(self, distances: np.ndarray):
-        self.distances = distances
-        self.gene_size = self.distances.shape[0]
-
-    def initialize_population(self):
-        self.populations = _get_new_populations(
-            self.distances,
-            self.population_number,
-            self.population_size,
-            self.gene_size,
-            self.enhanced_individuals,
-        )
-
-        self.populations_mutation_rate = _get_populations_mutation_rates(
-            self.population_number,
-            self.uniform_population_mutation_rate,
-            self.max_mutation_rate,
-        )
-
-        self.fitness = _calculate_fitness(
-            self.distances,
-            self.populations,
-            self.population_number,
-            self.population_size,
-        )
-
-    def __get_fittest_path(self):
-        return self.populations[0][0]  # to be replaced
-
-    def run_generation(self, disable_tqdm: bool = False):
-        self.fitness = _run_generation(
-            self.distances,
-            self.populations,
-            self.fitness,
-            self.populations_mutation_rate,
-            self.population_number,
-            self.population_size,
-            self.selection_threshold,
+        """Runs a single generation iteration"""
+        return _run_generation(
+            distance_matrix,
+            populations,
+            populations_fitness,
+            populations_mutation_rate,
+            population_number,
+            population_size,
+            selection_threshold,
             disable_tqdm,
         )
-        self.fittest = np.min(self.fitness)
-        self.fittest_path = self.__get_fittest_path()
 
-    def run(self, verbose: bool = True):
-        disable_tqdm = not verbose
+    @staticmethod
+    def get_new_populations(
+        distance_matrix: np.ndarray,
+        population_number: int,
+        population_size: int,
+        gene_size: int,
+        enhanced_individuals: int,
+    ):
+        """Generates a random population"""
+        return _get_new_populations(
+            distance_matrix,
+            population_number,
+            population_size,
+            gene_size,
+            enhanced_individuals,
+        )
 
-        self.initialize_population()
+    @staticmethod
+    def get_populations_mutation_rates(
+        population_number: int,
+        uniform_population_mutation_rate: bool,
+        max_mutation_rate: float,
+    ):
+        """Generates mutation rates for a population"""
+        return _get_populations_mutation_rates(
+            population_number,
+            uniform_population_mutation_rate,
+            max_mutation_rate,
+        )
 
-        print(f"Baseline fitness: {np.min(self.fitness):,} meters")
-        for generation in range(self.generation_number):
-            self.run_generation(disable_tqdm)
-            print(
-                f"Gen {generation+1} fitness: {np.min(self.fitness):,} meters"
-            )
+    @staticmethod
+    def calculate_fitness(
+        distance_matrix: np.ndarray,
+        populations: np.ndarray,
+        population_number: int,
+        population_size: int,
+    ):
+        """Calculates fitness defined by distance"""
+        return _calculate_fitness(
+            distance_matrix,
+            populations,
+            population_number,
+            population_size,
+        )
 
 
 def _run_generation(
@@ -232,7 +117,6 @@ def _run_generation(
     )
 
 
-@jit(nopython=True, parallel=True)
 def _get_new_populations(
     distance_matrix: np.ndarray,
     population_number: int,
@@ -245,7 +129,7 @@ def _get_new_populations(
         -1,
         dtype=GENE_DTYPE,
     )
-    for i in prange(population_number):
+    for i in range(population_number):
         populations[i] = _get_new_population(
             distance_matrix, population_size, gene_size, enhanced_individuals
         )
@@ -253,7 +137,6 @@ def _get_new_populations(
     return populations
 
 
-@jit(nopython=True)
 def _get_new_population(
     distance_matrix: np.ndarray,
     population_size: int,
@@ -273,7 +156,6 @@ def _get_new_population(
     return population
 
 
-@jit(nopython=True)
 def _get_populations_mutation_rates(
     population_number: int,
     uniform_population_mutation_rate: bool,
@@ -304,7 +186,6 @@ def _get_populations_mutation_rates(
     return population_mutation_rates
 
 
-@jit(nopython=True)
 def _selection_on_population(
     population_fitness: np.ndarray, max_selection_threshold: int
 ):
@@ -317,7 +198,6 @@ def _selection_on_population(
     return np.argsort(population_fitness)[:max_selection_threshold]
 
 
-@jit(nopython=True)
 def _calculate_population_fitness(
     distance_matrix: np.ndarray, population: np.ndarray, population_size: int
 ):
@@ -330,7 +210,6 @@ def _calculate_population_fitness(
     return population_fitness
 
 
-@jit(nopython=True, parallel=True)
 def _calculate_fitness(
     distance_matrix: np.ndarray,
     populations: np.ndarray,
@@ -341,7 +220,7 @@ def _calculate_fitness(
         (population_number, population_size),
         dtype=DISTANCES_DTYPE,
     )
-    for i in prange(population_number):
+    for i in range(population_number):
         fitness[i] = _calculate_population_fitness(
             distance_matrix, populations[i], population_size
         )
@@ -349,7 +228,6 @@ def _calculate_fitness(
     return fitness
 
 
-@jit(nopython=True, parallel=True)
 def _crossover(
     distance_matrix: np.ndarray,
     popoulation: np.ndarray,
@@ -357,7 +235,7 @@ def _crossover(
     mutation_rate: np.float32,
     fittest_invidivuals: np.ndarray,
 ):
-    for i in prange(population_size):
+    for i in range(population_size):
         if i not in fittest_invidivuals:
             parent_1, parent_2 = _get_crossover_parents(
                 popoulation, fittest_invidivuals
@@ -368,7 +246,6 @@ def _crossover(
             _mutate(popoulation[i], mutation_rate)
 
 
-@jit(nopython=True)
 def _get_crossover_parents(
     popoulation: np.ndarray, fittest_invidivuals: np.ndarray
 ):
@@ -376,7 +253,6 @@ def _get_crossover_parents(
     return popoulation[parents[0]], popoulation[parents[1]]
 
 
-@jit(nopython=True)
 def _crossover_parents(
     distance_matrix: np.ndarray, parent_1: np.ndarray, parent_2: np.ndarray
 ):
@@ -426,7 +302,6 @@ def _crossover_parents(
     return child
 
 
-@jit(nopython=True)
 def _mutate(individual: np.ndarray, mutation_rate: np.float32):
     invidivual_mutation_rate = np.random.uniform(0, 1, 1)[0]
     if invidivual_mutation_rate <= mutation_rate:
