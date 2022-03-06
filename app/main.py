@@ -9,7 +9,7 @@ add_custom_css()
 
 @provide_state()
 def main(state=None):
-    current_page = st.sidebar.radio("Go To", list(PAGE_MAP))
+    current_page = st.sidebar.radio("Coffee to", list(PAGE_MAP))
     PAGE_MAP[current_page](state=state).write()
 
 

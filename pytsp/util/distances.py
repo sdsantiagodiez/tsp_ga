@@ -1,6 +1,7 @@
 import numpy as np
 from geopy.distance import geodesic
 from numba import jit
+from numba import prange
 
 _NUMBA_CACHE: bool = True
 
@@ -98,3 +99,14 @@ def get_distance(
         distance = geodesic(origin_coordinates, destination_coordinates).meters
 
     return distance
+
+
+@jit(nopython=True, parallel=True, cache=_NUMBA_CACHE)
+def get_roundtrip(route: np.ndarray, destionation_coordinates: np.ndarray):
+    route_coordinates = np.zeros((route.size + 1, 2), dtype=np.float64)
+
+    for i in prange(route.size):
+        route_coordinates[i] = destionation_coordinates[route[i]]
+    route_coordinates[route.size] = destionation_coordinates[route[0]]
+
+    return route_coordinates

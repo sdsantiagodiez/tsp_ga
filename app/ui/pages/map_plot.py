@@ -4,7 +4,7 @@ from ..utils import Page
 from pytsp.util.plot import Mapplot
 
 
-class Page3(Page):
+class MapPlot(Page):
     def __init__(self, state):
         self.state = state
 

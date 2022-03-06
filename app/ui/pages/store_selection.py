@@ -64,7 +64,7 @@ class StoreSelection(Page):
             ] = city_data.selected_cities
             self.state.client_config[
                 "selected_cities_coordinates"
-            ] = city_data.selected_cities["coordinates"]
+            ] = city_data.get_selected_cities_coordinates()
             self.state.client_config["distance_matrix"] = city_data.distances
 
     def __build_outputs(self):
