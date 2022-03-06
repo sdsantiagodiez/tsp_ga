@@ -25,29 +25,33 @@ class Page2(Page):
 
     def __build_inputs(self):
         generation_number = st.sidebar.slider(
-            "Number of generations to compute",
+            "Generations to compute",
             value=self.state.client_config["generation_number"],
             min_value=5,
-            max_value=100,
-            step=1,
+            max_value=5000,
+            step=5,
+            help="Number of iterations to run the genetic algorithm",
         )
         self.state.client_config["generation_number"] = generation_number
-        """
+
         population_number = st.sidebar.slider(
-            "Number of populations",
+            "Populations to create",
             value=self.state.client_config["population_number"],
             min_value=5,
             max_value=1000,
-            step=5,
+            step=1,
+            help="Number of populations to generate and compute on each \
+                iteration",
         )
         self.state.client_config["population_number"] = population_number
-        """
+
         population_size = st.sidebar.slider(
             "Individuals per population",
             value=self.state.client_config["population_size"],
             min_value=5,
             max_value=1000,
             step=5,
+            help="Number of individuals (routes) to compute on each population",
         )
         self.state.client_config["population_size"] = population_size
 
@@ -57,24 +61,31 @@ class Page2(Page):
             min_value=0.0,
             max_value=1.0,
             step=0.01,
+            help="Maximum mutation rate value to be assigned randomly \
+                to each population",
         )
         self.state.client_config["max_mutation_rate"] = max_mutation_rate
 
         uniform_population_mutation_rate = st.sidebar.checkbox(
             "Uniform population mutation rate",
             value=self.state.client_config["uniform_population_mutation_rate"],
+            help="When selected, the same mutation rate is randomly selected \
+                for all populations. If not selected, each population would \
+                be assigned a different mutation rate",
         )
         self.state.client_config[
             "uniform_population_mutation_rate"
         ] = uniform_population_mutation_rate
 
-        # selection_threshold = self.state.client_config["selection_threshold"],
         selection_threshold = st.sidebar.slider(
             "Selection threshold",
             value=self.state.client_config["selection_threshold"],
             min_value=0,
             max_value=self.state.client_config["population_size"] // 2,
             step=1,
+            help="Number of individuals (routes) to be selected as 'fittests' \
+                from each population in order to survive into the next \
+                generation and use their genes for new individuals",
         )
         self.state.client_config["selection_threshold"] = selection_threshold
 
@@ -84,16 +95,26 @@ class Page2(Page):
             min_value=0,
             max_value=self.state.client_config["population_size"],
             step=1,
+            help="Number of individuals to not be generated completly \
+                randomly. While non-enhanced individuals are generated \
+                randomly selecting cities from the list of available \
+                destinations, enhanced individuals select a random starting \
+                point and subsequent destinations are selected based on \
+                nearest distance",
         )
         self.state.client_config["enhanced_individuals"] = enhanced_individuals
 
+        compute_options = ["numba", "numpy"]
         compute = st.sidebar.selectbox(
             "Compute mode",
-            options=["numba", "numpy"]
-            # add default
+            options=compute_options,
+            index=compute_options.index(self.state.client_config["compute"]),
+            help="Numpy: pure numpy implementation serving as a baseline \
+                of what could be achieved with 'base' python methods.\n\
+                Numba: still pythonic, but leveraging the numba library \
+                in order to compile optimized machine code",
         )
         self.state.client_config["compute"] = compute
-
         self.__add_generate_button()
 
     def __add_generate_button(self):
@@ -105,7 +126,7 @@ class Page2(Page):
             routing = Routing(
                 distances=self.state.client_config["distance_matrix"],
                 generation_number=self.state.client_config["generation_number"],
-                population_number=20,
+                population_number=self.state.client_config["population_number"],
                 population_size=self.state.client_config["population_size"],
                 max_mutation_rate=self.state.client_config["max_mutation_rate"],
                 uniform_population_mutation_rate=self.state.client_config[

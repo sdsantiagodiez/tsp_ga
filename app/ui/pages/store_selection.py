@@ -26,6 +26,8 @@ class StoreSelection(Page):
             min_value=5,
             max_value=1000,
             step=1,
+            help="Number of stores to randomly select from the list of \
+                available stores",
         )
         self.state.client_config["num_cities"] = number_of_stores
 
@@ -35,14 +37,22 @@ class StoreSelection(Page):
             min_value=5,
             max_value=1000,
             step=1,
+            help="Allows for a reproducible random selection of cities. \
+                Although cities are selected randomly, using the same seed \
+                would allow to always select the same subset of cities",
         )
         self.state.client_config["seed_cities"] = seed_cities
 
         allow_repeating_cities = st.sidebar.checkbox(
             "Allow selecting multiple stores in the same citiy",
             value=self.state.client_config["allow_repeating_cities"],
+            help="When selected, the selection process will allow to select \
+                multiple stores from a city that has been already chosen. \
+                When not, same city stores will be avoided",
         )
-        self.state.client_config["population_number"] = allow_repeating_cities
+        self.state.client_config[
+            "allow_repeating_cities"
+        ] = allow_repeating_cities
 
         self.__add_generate_button()
 
