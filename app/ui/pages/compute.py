@@ -6,7 +6,7 @@ from pytsp import Routing
 from pytsp.util.distances import get_roundtrip
 
 
-class Page2(Page):
+class Compute(Page):
     def __init__(self, state):
         self.state = state
 

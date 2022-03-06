@@ -23,7 +23,7 @@ class MapPlot(Page):
             min_value=240,
             max_value=2000,
             step=1,
-            key=1,
+            help="Pixel size of the map's width",
         )
         self.state.client_config["width"] = width
 
@@ -33,12 +33,14 @@ class MapPlot(Page):
             min_value=240,
             max_value=2000,
             step=1,
+            help="Pixel size of the map's height",
         )
         self.state.client_config["height"] = height
 
         line_color = st.sidebar.color_picker(
             "Connecting lines color",
             value=self.state.client_config["line_color"],
+            help="Color for lines conecting the route's destinations",
         )
         self.state.client_config["line_color"] = line_color
 
@@ -48,6 +50,7 @@ class MapPlot(Page):
             min_value=1,
             max_value=10,
             step=1,
+            help="Width for lines conecting the route's destinations",
         )
         self.state.client_config["line_weight"] = line_weight
 
@@ -57,12 +60,15 @@ class MapPlot(Page):
             min_value=1,
             max_value=10,
             step=1,
+            help="Arrows to draw in between route destination to indicate \
+                direction",
         )
         self.state.client_config["directional_arrows"] = directional_arrows
 
         directional_arrows_color = st.sidebar.color_picker(
             "Directional arrows color",
             value=self.state.client_config["directional_arrows_color"],
+            help="Color for directional arrows",
         )
         self.state.client_config[
             "directional_arrows_color"
@@ -74,6 +80,7 @@ class MapPlot(Page):
             min_value=1,
             max_value=10,
             step=1,
+            help="Drawing size for directional arrows",
         )
         self.state.client_config[
             "directional_arrows_radius"
