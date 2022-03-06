@@ -21,32 +21,6 @@ __DEFAULT_VALUES = {
 }
 
 
-def run(
-    num_cities: int = __DEFAULT_VALUES["num-cities"],
-    seed_cities: int = __DEFAULT_VALUES["seed-cities"],
-    allow_repeating_cities: bool = __DEFAULT_VALUES["allow-repeating-cities"],
-    generation_number: int = __DEFAULT_VALUES["generation-number"],
-    population_number: int = __DEFAULT_VALUES["population-number"],
-    population_size: int = __DEFAULT_VALUES["population-size"],
-    max_mutation_rate: float = __DEFAULT_VALUES["max-mutation-rate"],
-    uniform_population_mutation_rate: bool = __DEFAULT_VALUES[
-        "uniform-population-mutation-rate"
-    ],
-    selection_threshold: int = __DEFAULT_VALUES["selection-threshold"],
-    enhanced_individuals: int = __DEFAULT_VALUES["enhanced-individuals"],
-    compute: str = __DEFAULT_VALUES["compute"],
-    verbose: bool = __DEFAULT_VALUES["verbose"],
-):
-    city_data = DataGenerator(
-        num_cities=num_cities,
-        seed=seed_cities,
-        allow_repeating_cities=allow_repeating_cities,
-        verbose=verbose,
-    )
-
-    return city_data
-
-
 def _cli(
     num_cities: int,
     seed_cities: int,
@@ -135,7 +109,8 @@ def _compute(
         compute=compute,
     )
 
-    return routing.run(verbose=verbose)
+    routing.run(verbose=verbose)
+    return routing.fittest_individual
 
 
 def _get_args():

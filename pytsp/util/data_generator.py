@@ -144,3 +144,10 @@ class DataGenerator(object):
             seed, allow_repeating_cities
         )
         self._distances = self.__generate_distances(verbose=verbose)
+
+    def get_selected_cities_coordinates(self) -> np.ndarray:
+        # return np.array([k for k in self.selected_cities["coordinates"]])
+
+        return np.array(
+            [*self.selected_cities["coordinates"]], dtype=np.float32
+        )

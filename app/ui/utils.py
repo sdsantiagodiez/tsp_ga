@@ -8,6 +8,9 @@ class Page(ABC):
         pass
 
 
+st.set_page_config(page_title="Coffee Road Trip", layout="wide")
+
+
 def add_custom_css():
     st.markdown(
         """

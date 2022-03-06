@@ -198,4 +198,3 @@ class Routing(object):
         for generation in range(self.generation_number):
             self.run_generation(disable_tqdm)
             print(f"Gen {generation+1} fitness: {self.fittest:,} meters")
-        return self.fittest_individual

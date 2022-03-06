@@ -1,15 +1,15 @@
-from .page1 import Page1
-from .page2 import Page2
-from .page3 import Page3
+from .store_selection import StoreSelection
+from .compute import Compute
+from .map_plot import MapPlot
 from ..utils import Page
 
 from typing import Dict, Type
 
 
 PAGE_MAP: Dict[str, Type[Page]] = {
-    "Store selection": Page1,
-    "Optimal route": Page2,
-    "Route on a map": Page3,
+    "Store selection": StoreSelection,
+    "Optimal route": Compute,
+    "Route on a map": MapPlot,
 }
 
 __all__ = ["PAGE_MAP"]
