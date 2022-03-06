@@ -1,4 +1,5 @@
--e git+https://github.com/sdsantiagodiez/tsp_ga#egg=pytsp
-streamlit==1.5.1
-numpy==1.21.5
+git+https://github.com/sdsantiagodiez/tsp_ga#egg=pytsp
 streamlit_folium==0.6.2
+pytsp.egg==info
+streamlit==1.5.1
+stqdm==0.0.4
